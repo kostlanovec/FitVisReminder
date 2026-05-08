@@ -1,0 +1,170 @@
+{
+  "@@locale": "cs",
+
+  "appTitle": "LifeTrack",
+
+  "navDashboard": "Přehled",
+  "navReminders": "Připomínky",
+  "navSettings": "Nastavení",
+
+  "onboardingWelcomeTitle": "Vítejte v LifeTrack",
+  "onboardingWelcomeSubtitle": "Váš osobní asistent pro správu životních povinností.\nNikdy nezapomeňte na STK, zubaře nebo pas.",
+  "onboardingWelcomeHint": "Teď si projdeme kategorie a vyberete, co chcete sledovat.",
+  "onboardingFeatureNotifications": "Chytré upozornění předem",
+  "onboardingFeatureRecurring": "Opakující se připomínky",
+  "onboardingFeatureBattery": "Šetrné k baterii",
+  "onboardingFeatureOffline": "Funguje offline",
+  "onboardingNothingSelected": "Nic nevybráno",
+  "onboardingSelectedCount": "Vybráno: {count} z {total}",
+  "@onboardingSelectedCount": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "onboardingSelectAll": "Vybrat vše",
+  "onboardingDeselectAll": "Odebrat vše",
+  "onboardingSkip": "Přeskočit",
+  "onboardingNext": "Další",
+  "onboardingStart": "Začít",
+  "onboardingFinish": "Dokončit",
+  "onboardingCustomCard": "Přidat vlastní připomínku",
+  "onboardingCustomHint": "Něco v seznamu chybí? Přidejte ručně.",
+  "onboardingCustomTitle": "Vlastní připomínka",
+  "onboardingCustomNameHint": "např. Silniční daň, zubař...",
+  "onboardingCustomNameLabel": "Název",
+  "onboardingCustomCategoryLabel": "Kategorie",
+  "onboardingCustomRecurrenceLabel": "Opakování",
+  "onboardingCustomAdd": "Přidat",
+  "onboardingCustomCancel": "Zrušit",
+
+  "dashboardGreeting": "Dobrý den 👋",
+  "dashboardTitle": "Přehled",
+  "dashboardSectionAttention": "Vyžaduje pozornost",
+  "dashboardSectionThisMonth": "Tento měsíc",
+  "dashboardSectionCategories": "Kategorie",
+  "dashboardAllGood": "Vše v pořádku",
+  "dashboardNoUrgent": "Žádné urgentní termíny.",
+  "dashboardNothingThisMonth": "Nic dalšího tento měsíc 🎉",
+  "dashboardStatOverdue": "Po termínu",
+  "dashboardStatSoon": "Brzy",
+  "dashboardStatTotal": "Celkem",
+  "dashboardAddButton": "Přidat",
+  "dashboardSeeAll": "Vše",
+
+  "remindersTitle": "Připomínky",
+  "remindersSearchHint": "Hledat...",
+  "remindersEmpty": "Zatím žádné připomínky.",
+  "remindersEmptyHint": "Klikněte na + a přidejte první připomínku.",
+  "remindersOverdue": "Po termínu",
+  "remindersUpcoming": "Nadcházející",
+  "remindersCount": "{count} položek",
+  "@remindersCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "reminderFormTitleNew": "Nová připomínka",
+  "reminderFormTitleEdit": "Upravit připomínku",
+  "reminderFormSave": "Uložit",
+  "reminderFormFieldTitle": "Název *",
+  "reminderFormFieldTitleHint": "např. STK, Zubař, Pas...",
+  "reminderFormFieldTitleRequired": "Název je povinný",
+  "reminderFormFieldDescription": "Popis",
+  "reminderFormFieldDescriptionHint": "Volitelný popis...",
+  "reminderFormFieldCategory": "Kategorie",
+  "reminderFormFieldDueDate": "Termín",
+  "reminderFormFieldRecurrence": "Opakování",
+  "reminderFormFieldNotifications": "Upozornění",
+  "reminderFormTemplateSection": "Šablona (volitelné)",
+  "reminderFormAllTemplates": "Všechny šablony",
+  "reminderFormPickTemplate": "Vyberte šablonu",
+
+  "recurrenceOnce": "Jednorázově",
+  "recurrenceDaily": "Každý den",
+  "recurrenceWeekly": "Každý týden",
+  "recurrenceMonthly": "Každý měsíc",
+  "recurrenceYearly": "Každý rok",
+  "recurrenceCustomDays": "Každých {days} dní",
+  "@recurrenceCustomDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "triggerMonthBefore": "Měsíc předem",
+  "triggerWeekBefore": "Týden předem",
+  "triggerDayBefore": "Den předem",
+  "triggerSameDay": "V den termínu",
+
+  "reminderDetailMarkDone": "Splněno",
+  "reminderDetailDelete": "Smazat",
+  "reminderDetailDeleteConfirm": "Smazat tuto připomínku?",
+  "reminderDetailDeleteCancel": "Zrušit",
+  "reminderDetailNextOccurrences": "Nadcházející výskyty",
+  "reminderDetailSchedule": "Plán upozornění",
+
+  "settingsTitle": "Nastavení",
+  "settingsTheme": "Motiv",
+  "settingsThemeSystem": "Systém",
+  "settingsThemeLight": "Světlý",
+  "settingsThemeDark": "Tmavý",
+  "settingsLanguage": "Jazyk",
+  "settingsLanguageCzech": "Čeština",
+  "settingsLanguageEnglish": "Angličtina",
+  "settingsNotifications": "Notifikace",
+  "settingsNotificationsPermission": "Povolení notifikací",
+  "settingsRescheduleAll": "Přeplánovat vše",
+  "settingsCancelAll": "Zrušit vše",
+  "settingsAbout": "O aplikaci",
+  "settingsVersion": "Verze",
+
+  "categoryDocuments": "Dokumenty",
+  "categoryCar": "Auto",
+  "categoryHealth": "Zdraví",
+  "categoryFinance": "Finance",
+  "categoryHome": "Domov",
+  "categoryDigital": "Digitální",
+  "categoryPets": "Mazlíčci",
+  "categoryMaintenance": "Údržba",
+
+  "buttonAdd": "Přidat",
+  "buttonSave": "Uložit",
+  "buttonCancel": "Zrušit",
+  "buttonDelete": "Smazat",
+  "buttonEdit": "Upravit",
+  "buttonClose": "Zavřít",
+  "buttonBack": "Zpět",
+
+  "reminderDetailSnooze": "Odložit o týden",
+  "reminderDetailSnoozed": "Odloženo na {date}",
+  "@reminderDetailSnoozed": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "reminderDetailLastCompleted": "Naposledy splněno",
+  "reminderDetailNeverCompleted": "Zatím nesplněno",
+  "reminderDetailSectionUpcoming": "Nadcházející termíny",
+  "reminderDetailSectionSchedule": "Plán upozornění",
+  "reminderDetailSectionInfo": "Informace",
+  "reminderDetailCreatedAt": "Vytvořeno",
+
+  "selectionCount": "Vybráno: {count}",
+  "@selectionCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "selectionDelete": "Smazat ({count})",
+  "@selectionDelete": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "selectionMarkDone": "Hotovo ({count})",
+  "@selectionMarkDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "selectionCancel": "Zrušit výběr",
+  "selectionDeleteConfirm": "Smazat {count} připomínek?",
+  "@selectionDeleteConfirm": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "selectionDeleteHint": "Tuto akci nelze vrátit."
+}

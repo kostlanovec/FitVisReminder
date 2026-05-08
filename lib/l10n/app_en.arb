@@ -1,0 +1,170 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "LifeTrack",
+
+  "navDashboard": "Dashboard",
+  "navReminders": "Reminders",
+  "navSettings": "Settings",
+
+  "onboardingWelcomeTitle": "Welcome to LifeTrack",
+  "onboardingWelcomeSubtitle": "Your personal assistant for life maintenance.\nNever forget your MOT, dentist appointment or passport expiry.",
+  "onboardingWelcomeHint": "We'll go through each category so you can pick what to track.",
+  "onboardingFeatureNotifications": "Smart advance notifications",
+  "onboardingFeatureRecurring": "Recurring reminders",
+  "onboardingFeatureBattery": "Battery-friendly",
+  "onboardingFeatureOffline": "Works offline",
+  "onboardingNothingSelected": "Nothing selected",
+  "onboardingSelectedCount": "Selected: {count} of {total}",
+  "@onboardingSelectedCount": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "onboardingSelectAll": "Select all",
+  "onboardingDeselectAll": "Deselect all",
+  "onboardingSkip": "Skip",
+  "onboardingNext": "Next",
+  "onboardingStart": "Start",
+  "onboardingFinish": "Finish",
+  "onboardingCustomCard": "Add custom reminder",
+  "onboardingCustomHint": "Something not in the list? Add it manually.",
+  "onboardingCustomTitle": "Custom reminder",
+  "onboardingCustomNameHint": "e.g. Car tax, dentist...",
+  "onboardingCustomNameLabel": "Name",
+  "onboardingCustomCategoryLabel": "Category",
+  "onboardingCustomRecurrenceLabel": "Recurrence",
+  "onboardingCustomAdd": "Add",
+  "onboardingCustomCancel": "Cancel",
+
+  "dashboardGreeting": "Good day 👋",
+  "dashboardTitle": "Overview",
+  "dashboardSectionAttention": "Needs attention",
+  "dashboardSectionThisMonth": "This month",
+  "dashboardSectionCategories": "Categories",
+  "dashboardAllGood": "All good",
+  "dashboardNoUrgent": "No urgent deadlines.",
+  "dashboardNothingThisMonth": "Nothing else this month 🎉",
+  "dashboardStatOverdue": "Overdue",
+  "dashboardStatSoon": "Soon",
+  "dashboardStatTotal": "Total",
+  "dashboardAddButton": "Add",
+  "dashboardSeeAll": "All",
+
+  "remindersTitle": "Reminders",
+  "remindersSearchHint": "Search...",
+  "remindersEmpty": "No reminders yet.",
+  "remindersEmptyHint": "Tap + to add your first reminder.",
+  "remindersOverdue": "Overdue",
+  "remindersUpcoming": "Upcoming",
+  "remindersCount": "{count} items",
+  "@remindersCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "reminderFormTitleNew": "New reminder",
+  "reminderFormTitleEdit": "Edit reminder",
+  "reminderFormSave": "Save",
+  "reminderFormFieldTitle": "Title *",
+  "reminderFormFieldTitleHint": "e.g. MOT, dentist, passport...",
+  "reminderFormFieldTitleRequired": "Title is required",
+  "reminderFormFieldDescription": "Description",
+  "reminderFormFieldDescriptionHint": "Optional description...",
+  "reminderFormFieldCategory": "Category",
+  "reminderFormFieldDueDate": "Due date",
+  "reminderFormFieldRecurrence": "Recurrence",
+  "reminderFormFieldNotifications": "Notifications",
+  "reminderFormTemplateSection": "Template (optional)",
+  "reminderFormAllTemplates": "All templates",
+  "reminderFormPickTemplate": "Choose a template",
+
+  "recurrenceOnce": "One-off",
+  "recurrenceDaily": "Every day",
+  "recurrenceWeekly": "Every week",
+  "recurrenceMonthly": "Every month",
+  "recurrenceYearly": "Every year",
+  "recurrenceCustomDays": "Every {days} days",
+  "@recurrenceCustomDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "triggerMonthBefore": "A month before",
+  "triggerWeekBefore": "A week before",
+  "triggerDayBefore": "A day before",
+  "triggerSameDay": "On the day",
+
+  "reminderDetailMarkDone": "Mark as done",
+  "reminderDetailDelete": "Delete",
+  "reminderDetailDeleteConfirm": "Delete this reminder?",
+  "reminderDetailDeleteCancel": "Cancel",
+  "reminderDetailNextOccurrences": "Upcoming occurrences",
+  "reminderDetailSchedule": "Notification schedule",
+
+  "settingsTitle": "Settings",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsLanguage": "Language",
+  "settingsLanguageCzech": "Czech",
+  "settingsLanguageEnglish": "English",
+  "settingsNotifications": "Notifications",
+  "settingsNotificationsPermission": "Notification permission",
+  "settingsRescheduleAll": "Reschedule all",
+  "settingsCancelAll": "Cancel all",
+  "settingsAbout": "About",
+  "settingsVersion": "Version",
+
+  "categoryDocuments": "Documents",
+  "categoryCar": "Car",
+  "categoryHealth": "Health",
+  "categoryFinance": "Finance",
+  "categoryHome": "Home",
+  "categoryDigital": "Digital",
+  "categoryPets": "Pets",
+  "categoryMaintenance": "Maintenance",
+
+  "buttonAdd": "Add",
+  "buttonSave": "Save",
+  "buttonCancel": "Cancel",
+  "buttonDelete": "Delete",
+  "buttonEdit": "Edit",
+  "buttonClose": "Close",
+  "buttonBack": "Back",
+
+  "reminderDetailSnooze": "Snooze 1 week",
+  "reminderDetailSnoozed": "Snoozed to {date}",
+  "@reminderDetailSnoozed": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "reminderDetailLastCompleted": "Last completed",
+  "reminderDetailNeverCompleted": "Not completed yet",
+  "reminderDetailSectionUpcoming": "Upcoming dates",
+  "reminderDetailSectionSchedule": "Notification schedule",
+  "reminderDetailSectionInfo": "Information",
+  "reminderDetailCreatedAt": "Created",
+
+  "selectionCount": "{count} selected",
+  "@selectionCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "selectionDelete": "Delete ({count})",
+  "@selectionDelete": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "selectionMarkDone": "Done ({count})",
+  "@selectionMarkDone": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "selectionCancel": "Cancel",
+  "selectionDeleteConfirm": "Delete {count} reminders?",
+  "@selectionDeleteConfirm": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "selectionDeleteHint": "This action cannot be undone."
+}

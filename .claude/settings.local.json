@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone *)",
+      "Bash(flutter pub *)",
+      "Bash(flutter analyze *)",
+      "Bash(tasklist)",
+      "Bash(flutter run *)",
+      "Bash(flutter build *)",
+      "Bash(taskkill /IM flutter_reccuring_reminder.exe /F)",
+      "PowerShell(Stop-Process -Name \"flutter_reccuring_reminder\" -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\Documents\" | Select-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"$env:USERPROFILE\\\\Documents\" -Force | ForEach-Object { $_.Name })",
+      "Read(//c/Users/janse/**)",
+      "Read(//tmp/**)",
+      "Bash(flutter gen-l10n *)",
+      "Bash(xargs sed *)",
+      "Bash(dart analyze *)",
+      "Bash(java -version)",
+      "Bash(flutter doctor *)"
+    ]
+  }
+}
