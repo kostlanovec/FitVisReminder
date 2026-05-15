@@ -14,7 +14,7 @@ class CategoryBadge extends StatelessWidget {
           ? const EdgeInsets.symmetric(horizontal: 10, vertical: 4)
           : const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: category.color.withOpacity(0.12),
+        color: category.color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

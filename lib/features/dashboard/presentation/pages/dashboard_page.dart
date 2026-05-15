@@ -24,12 +24,14 @@ class DashboardPage extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // ── Hero header ───────────────────────────────────────────────────
           SliverToBoxAdapter(
-            child: _HeroHeader(isDark: isDark, l: l),
+            child: statsAsync.when(
+              data: (stats) => _HeroHeader(isDark: isDark, l: l, stats: stats),
+              loading: () => _HeroHeader(isDark: isDark, l: l),
+              error: (_, __) => _HeroHeader(isDark: isDark, l: l),
+            ),
           ),
 
-          // ── Stats row ─────────────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             sliver: SliverToBoxAdapter(
@@ -43,7 +45,6 @@ class DashboardPage extends ConsumerWidget {
 
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-          // ── Categories ────────────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverToBoxAdapter(
@@ -60,7 +61,7 @@ class DashboardPage extends ConsumerWidget {
             sliver: SliverToBoxAdapter(
               child: allAsync.when(
                 data: (reminders) =>
-                    _CategoryGrid(reminders: reminders, isDark: isDark),
+                    _CategoryGrid(reminders: reminders, isDark: isDark, l: l),
                 loading: () => const _SkeletonGrid(),
                 error: (e, _) => _ErrorCard(message: e.toString()),
               ),
@@ -69,7 +70,6 @@ class DashboardPage extends ConsumerWidget {
 
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-          // ── Needs attention ───────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverToBoxAdapter(
@@ -103,7 +103,7 @@ class DashboardPage extends ConsumerWidget {
                       reminder: urgent[i],
                       animationDelay: Duration(milliseconds: i * 60),
                       onTap: () =>
-                          context.push('/reminders/${urgent[i].id}'),
+                          context.push(AppRoutes.reminderDetailPath(urgent[i].id)),
                       onDone: () => ref
                           .read(reminderNotifierProvider.notifier)
                           .markDone(urgent[i]),
@@ -119,12 +119,11 @@ class DashboardPage extends ConsumerWidget {
 
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-          // ── This month ────────────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverToBoxAdapter(
               child: _SectionHeader(
-                title: l.dashboardSectionThisMonth,
+                title: l.dashboardSectionUpcoming,
                 onSeeAll: () => context.go(AppRoutes.remindersList),
                 l: l,
               ),
@@ -135,18 +134,18 @@ class DashboardPage extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
             sliver: allAsync.when(
               data: (reminders) {
-                final thisMonth = reminders
-                    .where((r) => r.daysUntilDue > 7 && r.daysUntilDue <= 31)
+                final upcomingReminders = reminders
+                    .where((r) => r.daysUntilDue > 7)
                     .toList()
                   ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
-                if (thisMonth.isEmpty) {
+                if (upcomingReminders.isEmpty) {
                   return SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: Text(
-                          l.dashboardNothingThisMonth,
+                          l.dashboardNothingUpcoming,
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 15,
@@ -157,17 +156,17 @@ class DashboardPage extends ConsumerWidget {
                   );
                 }
                 return SliverList.builder(
-                  itemCount: thisMonth.length,
+                  itemCount: upcomingReminders.length,
                   itemBuilder: (context, i) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: ReminderCard(
-                      reminder: thisMonth[i],
+                      reminder: upcomingReminders[i],
                       animationDelay: Duration(milliseconds: i * 50),
                       onTap: () =>
-                          context.push('/reminders/${thisMonth[i].id}'),
+                          context.push(AppRoutes.reminderDetailPath(upcomingReminders[i].id)),
                       onDone: () => ref
                           .read(reminderNotifierProvider.notifier)
-                          .markDone(thisMonth[i]),
+                          .markDone(upcomingReminders[i]),
                     ),
                   ),
                 );
@@ -189,49 +188,106 @@ class DashboardPage extends ConsumerWidget {
   }
 }
 
-// ── Hero header ─────────────────────────────────────────────────────────────
 
 class _HeroHeader extends StatelessWidget {
-  const _HeroHeader({required this.isDark, required this.l});
+  const _HeroHeader({required this.isDark, required this.l, this.stats});
   final bool isDark;
   final AppLocalizations l;
+  final DashboardStats? stats;
 
-  String get _greeting {
+  String _greeting(BuildContext context, AppLocalizations l) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Dobré ráno ☀️';
-    if (hour < 18) return 'Dobrý den 👋';
-    return 'Dobrý večer 🌙';
+    if (hour < 12) return l.greetingMorning;
+    if (hour < 18) return l.greetingAfternoon;
+    return l.greetingEvening;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final now = DateTime.now();
-    final dateStr = DateFormat('EEEE, d. MMMM', 'cs').format(now);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final dateStr = DateFormat('EEEE, d. MMMM', locale).format(now);
+
+    final total = stats?.total ?? 0;
+    final overdue = stats?.overdue ?? 0;
+    final progress = total == 0 ? 1.0 : (total - overdue) / total;
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.backgroundDark : AppColors.background,
+        gradient: LinearGradient(
+          colors: isDark 
+            ? [AppColors.primary.withOpacity(0.15), AppColors.backgroundDark] 
+            : [AppColors.primary.withOpacity(0.08), AppColors.background],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: Row(
             children: [
-              Text(
-                dateStr,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  letterSpacing: 0.2,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      dateStr,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                        letterSpacing: 0.2,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ).animate().fadeIn(delay: 50.ms),
+                    const SizedBox(height: 4),
+                    Text(
+                      _greeting(context, l),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        height: 1.1,
+                      ),
+                    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
+                    const SizedBox(height: 4),
+                    Text(
+                      overdue > 0 
+                        ? l.dashboardStatusOverdue(overdue)
+                        : l.dashboardStatusAllGood,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: overdue > 0 ? AppColors.accentAmber : AppColors.accentGreen,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ).animate().fadeIn(delay: 200.ms),
+                  ],
                 ),
-              ).animate().fadeIn(delay: 50.ms),
-              const SizedBox(height: 4),
-              Text(
-                _greeting,
-                style: theme.textTheme.headlineMedium,
-              ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
+              ),
+              if (stats != null)
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 54,
+                      height: 54,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 6,
+                        backgroundColor: isDark ? Colors.white10 : Colors.black05,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          overdue > 0 ? AppColors.accentAmber : AppColors.accentGreen,
+                        ),
+                        strokeCap: StrokeCap.round,
+                      ),
+                    ).animate().scale(delay: 200.ms, duration: 600.ms, curve: Curves.backOut),
+                    Text(
+                      overdue == 0 && total > 0 ? '✓' : '${(progress * 100).toInt()}%',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: overdue == 0 && total > 0 ? 14 : 10,
+                        color: overdue == 0 && total > 0 ? AppColors.accentGreen : null,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -239,8 +295,6 @@ class _HeroHeader extends StatelessWidget {
     );
   }
 }
-
-// ── Stats row ────────────────────────────────────────────────────────────────
 
 class _StatsRow extends StatelessWidget {
   const _StatsRow({required this.stats, required this.isDark, required this.l});
@@ -259,7 +313,8 @@ class _StatsRow extends StatelessWidget {
             color: AppColors.accentRed,
             icon: Icons.warning_amber_rounded,
             isDark: isDark,
-          ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1),
+            delay: 100.ms,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -269,7 +324,8 @@ class _StatsRow extends StatelessWidget {
             color: AppColors.accentAmber,
             icon: Icons.access_time_rounded,
             isDark: isDark,
-          ).animate().fadeIn(delay: 160.ms).slideY(begin: 0.1),
+            delay: 160.ms,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -279,7 +335,8 @@ class _StatsRow extends StatelessWidget {
             color: AppColors.primary,
             icon: Icons.list_alt_rounded,
             isDark: isDark,
-          ).animate().fadeIn(delay: 220.ms).slideY(begin: 0.1),
+            delay: 220.ms,
+          ),
         ),
       ],
     );
@@ -293,6 +350,7 @@ class _StatCard extends StatelessWidget {
     required this.color,
     required this.icon,
     required this.isDark,
+    required this.delay,
   });
 
   final int value;
@@ -300,6 +358,7 @@ class _StatCard extends StatelessWidget {
   final Color color;
   final IconData icon;
   final bool isDark;
+  final Duration delay;
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +369,7 @@ class _StatCard extends StatelessWidget {
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: color.withOpacity(isDark ? 0.2 : 0.15),
+          color: color.withOpacity(isDark ? 0.15 : 0.1),
           width: 1,
         ),
         boxShadow: cardShadow(isDark),
@@ -319,41 +378,44 @@ class _StatCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 34,
-            height: 34,
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             value.toString(),
             style: theme.textTheme.headlineSmall?.copyWith(
               color: value > 0 ? color : AppColors.textSecondary,
               fontWeight: FontWeight.w800,
+              fontSize: 22,
             ),
           ),
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(
               color: AppColors.textSecondary,
-              letterSpacing: 0.2,
+              letterSpacing: 0.1,
+              fontSize: 10,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(delay: delay).slideY(begin: 0.1, curve: Curves.easeOutQuad);
   }
 }
 
-// ── Category grid ────────────────────────────────────────────────────────────
 
 class _CategoryGrid extends StatelessWidget {
-  const _CategoryGrid({required this.reminders, required this.isDark});
+  const _CategoryGrid({required this.reminders, required this.isDark, required this.l});
   final List<Reminder> reminders;
   final bool isDark;
+  final AppLocalizations l;
 
   @override
   Widget build(BuildContext context) {
@@ -393,6 +455,7 @@ class _CategoryGrid extends StatelessWidget {
           count: count,
           urgentCount: urgent,
           isDark: isDark,
+          l: l,
         )
             .animate(delay: Duration(milliseconds: 60 + i * 50))
             .fadeIn()
@@ -408,12 +471,14 @@ class _CategoryTile extends StatelessWidget {
     required this.count,
     required this.urgentCount,
     required this.isDark,
+    required this.l,
   });
 
   final ReminderCategory category;
   final int count;
   final int urgentCount;
   final bool isDark;
+  final AppLocalizations l;
 
   @override
   Widget build(BuildContext context) {
@@ -483,7 +548,7 @@ class _CategoryTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                '$count pol.',
+                l.remindersCount(count),
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -496,7 +561,6 @@ class _CategoryTile extends StatelessWidget {
   }
 }
 
-// ── All good card ─────────────────────────────────────────────────────────────
 
 class _AllGoodCard extends StatelessWidget {
   const _AllGoodCard({required this.isDark, required this.l});
@@ -556,7 +620,6 @@ class _AllGoodCard extends StatelessWidget {
   }
 }
 
-// ── Section header ────────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({
@@ -605,7 +668,6 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ── Skeletons & error ─────────────────────────────────────────────────────────
 
 class _SkeletonStats extends StatelessWidget {
   const _SkeletonStats();

@@ -54,13 +54,20 @@ class ReminderRepositoryImpl implements ReminderRepository {
 
   @override
   Future<int> save(Reminder reminder) async {
-    final model = ReminderModel.fromDomain(reminder);
+    final model = ReminderData.fromDomain(reminder);
     return _datasource.upsert(model);
   }
 
   @override
   Future<void> saveAll(List<Reminder> reminders) async {
-    final models = reminders.map(ReminderModel.fromDomain).toList();
+    final models = reminders.map(ReminderData.fromDomain).toList();
+    await _datasource.upsertAll(models);
+  }
+
+  @override
+  Future<void> replaceAll(List<Reminder> reminders) async {
+    await _datasource.clearAll();
+    final models = reminders.map(ReminderData.fromDomain).toList();
     await _datasource.upsertAll(models);
   }
 

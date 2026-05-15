@@ -3,6 +3,8 @@ import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_cat
 import 'package:fit_vis_reminder/features/reminders/domain/entities/recurrence_rule.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/notification_trigger.dart';
 
+import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_priority.dart';
+
 class ReminderTemplate extends Equatable {
   const ReminderTemplate({
     required this.id,
@@ -12,6 +14,7 @@ class ReminderTemplate extends Equatable {
     required this.defaultTriggers,
     required this.description,
     required this.icon,
+    this.priority = ReminderPriority.normal,
     this.recommendedIntervalDays,
     this.onboardingQuestion,
     this.onboardingHint,
@@ -25,6 +28,7 @@ class ReminderTemplate extends Equatable {
   final List<NotificationTrigger> defaultTriggers;
   final String description;
   final String icon;
+  final ReminderPriority priority;
   final int? recommendedIntervalDays;
   final String? onboardingQuestion;
   final String? onboardingHint;

@@ -1,4 +1,4 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
 
 enum TriggerUnit { days, hours, minutes }
 
@@ -10,13 +10,21 @@ class NotificationTrigger extends Equatable {
   });
 
   const NotificationTrigger.sameDay()
-      : offsetDays = 0, label = 'V den události', notificationId = null;
+    : offsetDays = 0,
+      label = 'V den události',
+      notificationId = null;
   const NotificationTrigger.dayBefore()
-      : offsetDays = 1, label = 'Den předem', notificationId = null;
+    : offsetDays = 1,
+      label = 'Den předem',
+      notificationId = null;
   const NotificationTrigger.weekBefore()
-      : offsetDays = 7, label = 'Týden předem', notificationId = null;
+    : offsetDays = 7,
+      label = 'Týden předem',
+      notificationId = null;
   const NotificationTrigger.monthBefore()
-      : offsetDays = 30, label = 'Měsíc předem', notificationId = null;
+    : offsetDays = 30,
+      label = 'Měsíc předem',
+      notificationId = null;
 
   final int offsetDays;
   final String label;
@@ -41,9 +49,8 @@ class NotificationTrigger extends Equatable {
     );
   }
 
-  NotificationTrigger withId(int id) => NotificationTrigger(
-    offsetDays: offsetDays, label: label, notificationId: id,
-  );
+  NotificationTrigger withId(int id) =>
+      NotificationTrigger(offsetDays: offsetDays, label: label, notificationId: id);
 
   @override
   List<Object?> get props => [offsetDays, label, notificationId];

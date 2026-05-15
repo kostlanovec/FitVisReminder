@@ -1,8 +1,10 @@
-import 'package:fit_vis_reminder/core/constants/app_constants.dart';
 import 'package:fit_vis_reminder/features/notifications/data/datasources/notification_service.dart';
+import 'package:fit_vis_reminder/features/notifications/data/datasources/widget_service.dart';
+import 'package:fit_vis_reminder/l10n/app_localizations.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/notification_trigger.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/repositories/reminder_repository.dart';
+import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_priority.dart';
 
 /// Central scheduling engine.
 ///
@@ -12,30 +14,36 @@ class ReminderScheduler {
   ReminderScheduler({
     required this.notificationService,
     required this.reminderRepository,
+    required this.settings,
+    required this.widgetService,
   });
 
   final NotificationService notificationService;
   final ReminderRepository reminderRepository;
+  final NotificationSettings settings;
+  final WidgetService widgetService;
 
   static const _maxNotificationsToSchedule = 60;
 
-  // ── Public API ────────────────────────────────────────────────────────
-
-  Future<void> scheduleAll() async {
+  Future<void> scheduleAll(AppLocalizations l) async {
+    await notificationService.cancelAll();
     final reminders = await reminderRepository.getActive();
-    await _scheduleReminders(reminders);
+    await _scheduleReminders(reminders, l);
+    await widgetService.syncReminders(reminders);
   }
 
-  Future<void> scheduleForReminder(Reminder reminder) async {
+  Future<void> scheduleForReminder(Reminder reminder, AppLocalizations l) async {
     await notificationService.cancelAllForReminder(reminder.id);
-    await _scheduleSingleReminder(reminder);
+    await _scheduleSingleReminder(reminder, l);
+    final reminders = await reminderRepository.getActive();
+    await widgetService.syncReminders(reminders);
   }
 
   Future<void> cancelForReminder(int reminderId) async {
     await notificationService.cancelAllForReminder(reminderId);
   }
 
-  Future<void> onReminderCompleted(Reminder reminder) async {
+  Future<void> onReminderCompleted(Reminder reminder, AppLocalizations l) async {
     await notificationService.cancelAllForReminder(reminder.id);
 
     if (!reminder.recurrenceRule.isRecurring) return;
@@ -43,43 +51,49 @@ class ReminderScheduler {
     final next = reminder.recurrenceRule.nextOccurrence(reminder.dueDate);
     final updated = reminder.copyWith(dueDate: next, updatedAt: DateTime.now());
     await reminderRepository.updateDueDate(reminder.id, next);
-    await _scheduleSingleReminder(updated);
+    await _scheduleSingleReminder(updated, l);
   }
 
-  // ── Internal ──────────────────────────────────────────────────────────
-
-  Future<void> _scheduleReminders(List<Reminder> reminders) async {
+  Future<void> _scheduleReminders(List<Reminder> reminders, AppLocalizations l) async {
     final now = DateTime.now();
-    final limit = now.add(AppConstants.maxAdvanceSchedule);
+    final limit = now.add(Duration(days: settings.scheduleHorizonMonths * 30));
 
     final notificationSlots = <_NotificationSlot>[];
 
     for (final reminder in reminders) {
       if (!reminder.isActive) continue;
 
-      final slots = _buildSlots(reminder, now, limit);
+      // Only schedule up to user-defined limit per reminder
+      final slots = _buildSlots(reminder, now, limit, l, limitCount: settings.maxTriggersPerReminder);
       notificationSlots.addAll(slots);
     }
 
-    // Sort by date, take closest ones to not exceed OS limit
     notificationSlots.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+    // Even if we have many reminders, we stay within OS limits
     final toSchedule = notificationSlots.take(_maxNotificationsToSchedule).toList();
 
     for (final slot in toSchedule) {
+      final reminder = reminders.firstWhere((r) => r.id == slot.reminderId);
       await notificationService.schedule(
         id: slot.notificationId,
         title: slot.title,
         body: slot.body,
         scheduledAt: slot.scheduledAt,
+        priority: reminder.priority,
         payload: {'reminderId': slot.reminderId.toString()},
+        snoozeLabel: l.notificationActionSnooze,
+        doneLabel: reminder.priority == ReminderPriority.high 
+          ? l.notificationActionUnderstand 
+          : l.notificationActionDone,
       );
     }
   }
 
-  Future<void> _scheduleSingleReminder(Reminder reminder) async {
+  Future<void> _scheduleSingleReminder(Reminder reminder, AppLocalizations l) async {
     final now = DateTime.now();
-    final limit = now.add(AppConstants.maxAdvanceSchedule);
-    final slots = _buildSlots(reminder, now, limit);
+    final limit = now.add(Duration(days: settings.scheduleHorizonMonths * 30));
+    // Only schedule up to user-defined limit
+    final slots = _buildSlots(reminder, now, limit, l, limitCount: settings.maxTriggersPerReminder);
 
     for (final slot in slots) {
       await notificationService.schedule(
@@ -87,7 +101,12 @@ class ReminderScheduler {
         title: slot.title,
         body: slot.body,
         scheduledAt: slot.scheduledAt,
+        priority: reminder.priority,
         payload: {'reminderId': reminder.id.toString()},
+        snoozeLabel: l.notificationActionSnooze,
+        doneLabel: reminder.priority == ReminderPriority.high 
+          ? l.notificationActionUnderstand 
+          : l.notificationActionDone,
       );
     }
   }
@@ -96,9 +115,21 @@ class ReminderScheduler {
     Reminder reminder,
     DateTime now,
     DateTime limit,
-  ) {
+    AppLocalizations l, {
+    int limitCount = 0,
+  }) {
     final slots = <_NotificationSlot>[];
-    final triggers = reminder.triggers;
+    final triggers = List<NotificationTrigger>.from(reminder.triggers);
+
+    if (reminder.priority == ReminderPriority.high) {
+      // Add standard high-priority sequence if not already present
+      const highPrioOffsets = [30, 14, 7, 3, 2, 1, 0];
+      for (final offset in highPrioOffsets) {
+        if (!triggers.any((t) => t.offsetDays == offset)) {
+          triggers.add(NotificationTrigger(offsetDays: offset, label: '$offset dní předem'));
+        }
+      }
+    }
 
     if (triggers.isEmpty) {
       triggers.add(const NotificationTrigger.sameDay());
@@ -106,14 +137,12 @@ class ReminderScheduler {
 
     DateTime eventDate = reminder.dueDate;
 
-    // For recurring reminders, advance past-due dates to the next occurrence
     if (reminder.recurrenceRule.isRecurring) {
       while (eventDate.isBefore(now) && eventDate.isBefore(limit)) {
         eventDate = reminder.recurrenceRule.nextOccurrence(eventDate);
       }
     }
 
-    // Schedule next 2 occurrences for recurring reminders
     final occurrencesToSchedule = reminder.recurrenceRule.isRecurring ? 2 : 1;
     int occurrencesScheduled = 0;
 
@@ -123,13 +152,15 @@ class ReminderScheduler {
         final scheduledAt = trigger.scheduledFor(eventDate);
 
         if (scheduledAt.isAfter(now) && scheduledAt.isBefore(limit)) {
-          slots.add(_NotificationSlot(
-            notificationId: _buildNotificationId(reminder.id, i, occurrencesScheduled),
-            reminderId: reminder.id,
-            title: _buildTitle(reminder, trigger),
-            body: _buildBody(reminder, trigger, eventDate),
-            scheduledAt: scheduledAt,
-          ));
+          slots.add(
+            _NotificationSlot(
+              notificationId: _buildNotificationId(reminder.id, i, occurrencesScheduled),
+              reminderId: reminder.id,
+              title: _buildTitle(reminder, trigger),
+              body: _buildBody(reminder, trigger, eventDate, l),
+              scheduledAt: scheduledAt,
+            ),
+          );
         }
       }
 
@@ -139,32 +170,38 @@ class ReminderScheduler {
       } else {
         break;
       }
+      
+      if (limitCount > 0 && slots.length >= limitCount) break;
+    }
+
+    if (limitCount > 0 && slots.length > limitCount) {
+      slots.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+      return slots.take(limitCount).toList();
     }
 
     return slots;
   }
 
   int _buildNotificationId(int reminderId, int triggerIndex, int occurrence) {
-    // Deterministic, collision-resistant ID
     return ((reminderId * 100 + triggerIndex) * 10 + occurrence) % 2147483647;
   }
 
   String _buildTitle(Reminder reminder, NotificationTrigger trigger) {
     if (trigger.offsetDays == 0) return '${reminder.category.emoji} ${reminder.title}';
-    return '${reminder.category.emoji} ${reminder.title} – ${trigger.label}';
+    return '${reminder.category.emoji} ${reminder.title} - ${trigger.label}';
   }
 
   String _buildBody(
     Reminder reminder,
     NotificationTrigger trigger,
     DateTime eventDate,
+    AppLocalizations l,
   ) {
     final days = trigger.offsetDays;
-    if (days == 0) return 'Dnes nastává termín: ${reminder.title}';
-    if (days == 1) return 'Zítra nastává termín: ${reminder.title}';
-    if (days <= 7) return 'Za $days dní nastává termín: ${reminder.title}';
-    if (days <= 31) return 'Za $days dní: ${reminder.title}';
-    return 'Připomenutí: ${reminder.title} – ${_formatDate(eventDate)}';
+    if (days == 0) return l.notificationBodyToday(reminder.title);
+    if (days == 1) return l.notificationBodyTomorrow(reminder.title);
+    if (days <= 31) return l.notificationBodyInDays(days, reminder.title);
+    return l.notificationBodyRemind(_formatDate(eventDate), reminder.title);
   }
 
   String _formatDate(DateTime date) {

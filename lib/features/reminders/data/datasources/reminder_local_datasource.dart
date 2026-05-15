@@ -2,17 +2,18 @@ import 'package:isar/isar.dart';
 import 'package:fit_vis_reminder/features/reminders/data/models/reminder_model.dart';
 
 abstract interface class ReminderLocalDatasource {
-  Stream<List<ReminderModel>> watchAll();
-  Stream<List<ReminderModel>> watchByCategory(int categoryIndex);
-  Stream<List<ReminderModel>> watchDueBefore(DateTime before);
-  Stream<List<ReminderModel>> watchOverdue();
-  Future<ReminderModel?> findById(int id);
-  Future<List<ReminderModel>> getAll();
-  Future<List<ReminderModel>> getActive();
-  Future<int> upsert(ReminderModel model);
-  Future<void> upsertAll(List<ReminderModel> models);
+  Stream<List<ReminderData>> watchAll();
+  Stream<List<ReminderData>> watchByCategory(int categoryIndex);
+  Stream<List<ReminderData>> watchDueBefore(DateTime before);
+  Stream<List<ReminderData>> watchOverdue();
+  Future<ReminderData?> findById(int id);
+  Future<List<ReminderData>> getAll();
+  Future<List<ReminderData>> getActive();
+  Future<int> upsert(ReminderData model);
+  Future<void> upsertAll(List<ReminderData> models);
   Future<void> delete(int id);
-  Future<void> update(int id, void Function(ReminderModel model) updater);
+  Future<void> clearAll();
+  Future<void> update(int id, void Function(ReminderData model) updater);
 }
 
 class IsarReminderDatasource implements ReminderLocalDatasource {
@@ -21,8 +22,8 @@ class IsarReminderDatasource implements ReminderLocalDatasource {
   final Isar _isar;
 
   @override
-  Stream<List<ReminderModel>> watchAll() {
-    return _isar.reminderModels
+  Stream<List<ReminderData>> watchAll() {
+    return _isar.reminderDatas
         .filter()
         .isActiveEqualTo(true)
         .sortByDueDate()
@@ -30,8 +31,8 @@ class IsarReminderDatasource implements ReminderLocalDatasource {
   }
 
   @override
-  Stream<List<ReminderModel>> watchByCategory(int categoryIndex) {
-    return _isar.reminderModels
+  Stream<List<ReminderData>> watchByCategory(int categoryIndex) {
+    return _isar.reminderDatas
         .filter()
         .isActiveEqualTo(true)
         .categoryIndexEqualTo(categoryIndex)
@@ -40,8 +41,8 @@ class IsarReminderDatasource implements ReminderLocalDatasource {
   }
 
   @override
-  Stream<List<ReminderModel>> watchDueBefore(DateTime before) {
-    return _isar.reminderModels
+  Stream<List<ReminderData>> watchDueBefore(DateTime before) {
+    return _isar.reminderDatas
         .filter()
         .isActiveEqualTo(true)
         .dueDateLessThan(before)
@@ -50,8 +51,8 @@ class IsarReminderDatasource implements ReminderLocalDatasource {
   }
 
   @override
-  Stream<List<ReminderModel>> watchOverdue() {
-    return _isar.reminderModels
+  Stream<List<ReminderData>> watchOverdue() {
+    return _isar.reminderDatas
         .filter()
         .isActiveEqualTo(true)
         .dueDateLessThan(DateTime.now())
@@ -59,18 +60,18 @@ class IsarReminderDatasource implements ReminderLocalDatasource {
   }
 
   @override
-  Future<ReminderModel?> findById(int id) async {
-    return _isar.reminderModels.get(id);
+  Future<ReminderData?> findById(int id) async {
+    return _isar.reminderDatas.get(id);
   }
 
   @override
-  Future<List<ReminderModel>> getAll() async {
-    return _isar.reminderModels.where().findAll();
+  Future<List<ReminderData>> getAll() async {
+    return _isar.reminderDatas.where().findAll();
   }
 
   @override
-  Future<List<ReminderModel>> getActive() async {
-    return _isar.reminderModels
+  Future<List<ReminderData>> getActive() async {
+    return _isar.reminderDatas
         .filter()
         .isActiveEqualTo(true)
         .sortByDueDate()
@@ -78,27 +79,32 @@ class IsarReminderDatasource implements ReminderLocalDatasource {
   }
 
   @override
-  Future<int> upsert(ReminderModel model) async {
-    return _isar.writeTxn(() => _isar.reminderModels.put(model));
+  Future<int> upsert(ReminderData model) async {
+    return _isar.writeTxn(() => _isar.reminderDatas.put(model));
   }
 
   @override
-  Future<void> upsertAll(List<ReminderModel> models) async {
-    await _isar.writeTxn(() => _isar.reminderModels.putAll(models));
+  Future<void> upsertAll(List<ReminderData> models) async {
+    await _isar.writeTxn(() => _isar.reminderDatas.putAll(models));
   }
 
   @override
   Future<void> delete(int id) async {
-    await _isar.writeTxn(() => _isar.reminderModels.delete(id));
+    await _isar.writeTxn(() => _isar.reminderDatas.delete(id));
   }
 
   @override
-  Future<void> update(int id, void Function(ReminderModel model) updater) async {
+  Future<void> clearAll() async {
+    await _isar.writeTxn(() => _isar.reminderDatas.clear());
+  }
+
+  @override
+  Future<void> update(int id, void Function(ReminderData model) updater) async {
     await _isar.writeTxn(() async {
-      final model = await _isar.reminderModels.get(id);
+      final model = await _isar.reminderDatas.get(id);
       if (model != null) {
         updater(model);
-        await _isar.reminderModels.put(model);
+        await _isar.reminderDatas.put(model);
       }
     });
   }

@@ -1,13 +1,14 @@
 {
   "@@locale": "cs",
 
-  "appTitle": "LifeTrack",
+  "appTitle": "FitVis Reminder",
 
   "navDashboard": "Přehled",
   "navReminders": "Připomínky",
   "navSettings": "Nastavení",
+  "navTemplates": "Šablony",
 
-  "onboardingWelcomeTitle": "Vítejte v LifeTrack",
+  "onboardingWelcomeTitle": "Vítejte ve FitVis Reminder",
   "onboardingWelcomeSubtitle": "Váš osobní asistent pro správu životních povinností.\nNikdy nezapomeňte na STK, zubaře nebo pas.",
   "onboardingWelcomeHint": "Teď si projdeme kategorie a vyberete, co chcete sledovat.",
   "onboardingFeatureNotifications": "Chytré upozornění předem",
@@ -117,6 +118,9 @@
   "settingsNotificationsPermission": "Povolení notifikací",
   "settingsRescheduleAll": "Přeplánovat vše",
   "settingsCancelAll": "Zrušit vše",
+  "settingsTestNotification": "Testovací notifikace",
+  "settingsTestNotificationDesc": "Odeslat zkušební oznámení",
+  "settingsTestNotificationSent": "Testovací notifikace odeslána",
   "settingsAbout": "O aplikaci",
   "settingsVersion": "Verze",
 
@@ -124,6 +128,7 @@
   "categoryCar": "Auto",
   "categoryHealth": "Zdraví",
   "categoryFinance": "Finance",
+  "categorySubscriptions": "Předplatné",
   "categoryHome": "Domov",
   "categoryDigital": "Digitální",
   "categoryPets": "Mazlíčci",
@@ -136,6 +141,23 @@
   "buttonEdit": "Upravit",
   "buttonClose": "Zavřít",
   "buttonBack": "Zpět",
+  "onboardingFrequencyLabel": "Frekvence připomínání:",
+  "onboardingRecommended": "(doporučeno)",
+  "settingsNotifications": "Oznámení",
+  "settingsNotificationsTest": "Testovací notifikace",
+  "settingsNotificationsTestHint": "Kliknutím odešlete okamžitou notifikaci pro ověření funkčnosti",
+  "reminderPriorityLabel": "Důležitost (priorita):",
+  "reminderPriorityNormal": "Normální",
+  "reminderPriorityHigh": "Vysoká (Kritická)",
+  "reminderCustomRecurrence": "Vlastní opakování...",
+  "reminderCustomNotification": "Vlastní upozornění...",
+  "reminderCustomDays": "Počet dní",
+  "reminderCustomMonths": "Počet měsíců",
+  "reminderCustomYears": "Počet let",
+  "reminderCustomLabel": "Vlastní",
+  "greetingMorning": "Dobré ráno ☀️",
+  "greetingAfternoon": "Dobrý den 👋",
+  "greetingEvening": "Dobrý večer 🌙",
 
   "reminderDetailSnooze": "Odložit o týden",
   "reminderDetailSnoozed": "Odloženo na {date}",
@@ -166,5 +188,120 @@
   "@selectionDeleteConfirm": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "selectionDeleteHint": "Tuto akci nelze vrátit."
+  "selectionDeleteHint": "Tuto akci nelze vrátit.",
+
+  "settingsSectionSecurity": "Bezpečnost",
+  "settingsAppLock": "Zámek aplikace (PIN)",
+  "settingsAppLockEnabled": "Zapnuto, timeout {minutes} min",
+  "@settingsAppLockEnabled": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "settingsAppLockDisabled": "Vypnuto",
+  "settingsAppLockTimeout": "Timeout zamčení",
+  "settingsAppLockTimeoutValue": "{minutes} minut",
+  "@settingsAppLockTimeoutValue": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "settingsAppLockNow": "Zamknout teď",
+  "settingsPinInvalid": "PIN je neplatný nebo se neshoduje.",
+  "settingsPinSet": "Nastavit PIN",
+  "settingsPinLabel": "PIN (4-6 číslic)",
+  "settingsPinConfirm": "Potvrzení PIN",
+  "appLockTitle": "Aplikace je zamčená",
+  "appLockSubtitle": "Zadej PIN pro odemknutí.",
+  "appLockPinLabel": "PIN",
+  "appLockUnlock": "Odemknout",
+  "appLockInvalidPin": "Neplatný PIN",
+
+  "settingsSectionBackup": "Záloha",
+  "settingsBackupExport": "Exportovat zálohu",
+  "settingsBackupExportHint": "Uloží JSON soubor do dokumentů aplikace",
+  "settingsBackupImport": "Importovat zálohu (JSON)",
+  "settingsBackupImportHint": "Nahradí aktuální data",
+  "settingsBackupExportSuccess": "Záloha uložena: {path}",
+  "@settingsBackupExportSuccess": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "settingsBackupImportConfirmTitle": "Nahradit aktuální data?",
+  "settingsBackupImportConfirmBody": "Import přepíše všechny aktuální připomínky. Tuto akci nelze vrátit.",
+  "settingsBackupImportDialogTitle": "Import JSON zálohy",
+  "settingsBackupImportDialogHint": "Vlož obsah JSON zálohy sem...",
+  "settingsBackupImportSuccess": "Importováno {count} připomínek.",
+  "@settingsBackupImportSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsBackupImportError": "Import se nepovedl. Zkontroluj JSON.",
+  "backupExportWebError": "Export do souboru není na webu podporován. Použijte stažení JSON.",
+
+  "templatesTitle": "Knihovna šablon",
+  "templatesSearchHint": "Hledat šablony...",
+  "templatesEmpty": "Žádné šablony nenalezeny",
+  "templatesAddSuccess": "Připomínka '{title}' byla přidána",
+  "@templatesAddSuccess": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "dashboardStatusOverdue": "Máte {count} restů k vyřízení",
+  "@dashboardStatusOverdue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "dashboardStatusAllGood": "Vše je v naprostém pořádku ✨",
+  "appLockForgotPin": "Zapomněli jste PIN?",
+  "filterHighPriority": "VYSOKÁ PRIORITA",
+  "remindersFilterNoResults": "Žádné výsledky",
+  "remindersFilterNoResultsHint": "Zkuste jiný filtr nebo vyhledávání",
+  "errorTitle": "Něco se pokazilo",
+  "errorSubtitle": "Zkus to prosím za chvíli znovu.",
+  "settingsSectionPerformance": "Výkon a Oznámení",
+  "settingsNotifHorizon": "Horizont plánování",
+  "settingsNotifHorizonValue": "{months} měsíců",
+  "@settingsNotifHorizonValue": {
+    "placeholders": { "months": { "type": "int" } }
+  },
+  "settingsNotifLimit": "Max. upozornění na položku",
+  "settingsNotifLimitOnlyNext": "Jen nejbližší (optimalizováno)",
+  "settingsNotifLimitValue": "{count} upozornění",
+  "@settingsNotifLimitValue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsNotifLimitAll": "Bez omezení",
+  "settingsBackupCloud": "Zálohovat do Cloudu (Drive/iCloud)",
+  "notificationActionSnooze": "Odložit",
+  "notificationActionDone": "Hotovo",
+  "notificationActionUnderstand": "Rozumím ✓",
+  "notificationBodyToday": "Dnes nastává termín: {title}",
+  "notificationBodyTomorrow": "Zítra nastává termín: {title}",
+  "notificationBodyInDays": "Za {days} dní nastává termín: {title}",
+  "@notificationBodyInDays": {
+    "placeholders": { "days": { "type": "int" }, "title": { "type": "String" } }
+  },
+  "notificationBodyRemind": "Připomenutí: {title} - {date}",
+  "@notificationBodyRemind": {
+    "placeholders": { "date": { "type": "String" }, "title": { "type": "String" } }
+  },
+  "backupShareSubject": "FitVis Reminder Záloha",
+  "backupShareText": "Záloha mých připomínek z FitVis Reminder",
+  "notificationChannelReminders": "Připomínky",
+  "notificationChannelRemindersDesc": "Obecné připomínky životní údržby",
+  "notificationChannelImportant": "Důležité termíny",
+  "notificationChannelImportantDesc": "Upozornění na blížící se důležité termíny",
+  "notificationChannelUpcoming": "Nadcházející události",
+  "notificationChannelUpcomingDesc": "Informace o událostech v dalších týdnech",
+  "reminderDetailOverdueCount": "{days}d po termínu",
+  "@reminderDetailOverdueCount": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "reminderDetailDueToday": "Dnes",
+  "reminderDetailDueTomorrow": "Zítra",
+  "reminderDetailDueInDays": "Za {days}d",
+  "@reminderDetailDueInDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "reminderNotFound": "Připomínka nenalezena",
+  "settingsAboutDesc": "Systém pro údržbu životních termínů",
+  "reminderMarkDoneAction": "Označit jako splněné",
+  "priorityHigh": "VYSOKÁ PRIORITA",
+  "settingsCalendarSync": "Synchronizace s kalendářem",
+  "settingsCalendarSyncHint": "Automaticky přidávat termíny do systémového kalendáře",
+  "buttonShare": "Sdílet",
+  "selectionShare": "Sdílet ({count})"
 }

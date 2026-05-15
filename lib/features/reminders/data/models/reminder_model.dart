@@ -8,8 +8,8 @@ import 'package:fit_vis_reminder/features/reminders/domain/entities/notification
 part 'reminder_model.g.dart';
 
 @collection
-class ReminderModel {
-  ReminderModel({
+class ReminderData {
+  ReminderData({
     required this.title,
     required this.categoryIndex,
     required this.dueDate,
@@ -22,6 +22,7 @@ class ReminderModel {
     this.createdAt,
     this.updatedAt,
     this.customIconCode,
+    this.calendarEventId,
   });
 
   Id id = Isar.autoIncrement;
@@ -37,6 +38,7 @@ class ReminderModel {
   DateTime? createdAt;
   DateTime? updatedAt;
   int? customIconCode;
+  String? calendarEventId;
 
   Reminder toDomain() {
     return Reminder(
@@ -53,11 +55,12 @@ class ReminderModel {
       createdAt: createdAt,
       updatedAt: updatedAt,
       customIconCode: customIconCode,
+      calendarEventId: calendarEventId,
     );
   }
 
-  static ReminderModel fromDomain(Reminder reminder) {
-    return ReminderModel(
+  static ReminderData fromDomain(Reminder reminder) {
+    return ReminderData(
       title: reminder.title,
       categoryIndex: reminder.category.index,
       dueDate: reminder.dueDate,
@@ -70,6 +73,7 @@ class ReminderModel {
       createdAt: reminder.createdAt ?? DateTime.now(),
       updatedAt: reminder.updatedAt ?? DateTime.now(),
       customIconCode: reminder.customIconCode,
+      calendarEventId: reminder.calendarEventId,
     )..id = reminder.id == 0 ? Isar.autoIncrement : reminder.id;
   }
 

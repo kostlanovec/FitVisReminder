@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/widget_title_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Další termín"
+        android:textColor="#94A3B8"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/next_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/widget_title_label"
+        android:layout_marginTop="4dp"
+        android:text="Načítání..."
+        android:textColor="#F8FAFC"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:ellipsize="end"
+        android:maxLines="1" />
+
+    <TextView
+        android:id="@+id/next_category"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/next_title"
+        android:layout_marginTop="2dp"
+        android:text="Kategorie"
+        android:textColor="#6366F1"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/next_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/next_category"
+        android:layout_marginTop="8dp"
+        android:text="1. 1. 2024"
+        android:textColor="#E2E8F0"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/overdue_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/overdue_badge_bg"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:text="3 po termínu"
+        android:textColor="#FFFFFF"
+        android:textSize="10sp"
+        android:visibility="gone" />
+
+</RelativeLayout>

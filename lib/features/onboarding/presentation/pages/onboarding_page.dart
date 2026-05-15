@@ -40,6 +40,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   bool _isSaving = false;
 
   final Map<String, DateTime> _lastDoneDates = {};
+  final Map<String, RecurrenceRule> _customRecurrences = {};
   final List<_CustomEntry> _customEntries = [];
 
   static const _categories = ReminderCategory.values;
@@ -97,7 +98,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         title: tpl.title,
         category: tpl.category,
         dueDate: dueDate,
-        recurrenceRule: tpl.defaultRecurrence,
+        recurrenceRule: _customRecurrences[id] ?? tpl.defaultRecurrence,
         triggers: tpl.defaultTriggers,
         description: tpl.description,
         templateId: tpl.id,
@@ -160,8 +161,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       category: cat,
                       templates: grouped[cat] ?? [],
                       lastDoneDates: _lastDoneDates,
+                      customRecurrences: _customRecurrences,
                       onDatePicked: (id, date) =>
                           setState(() => _lastDoneDates[id] = date),
+                      onRecurrencePicked: (id, rule) =>
+                          setState(() => _customRecurrences[id] = rule),
                     ),
                   _CustomPage(
                     entries: _customEntries,
@@ -199,7 +203,7 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = (currentPage + 1) / totalPages;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 12, 20, 0),
+      padding: const EdgeInsets.fromLTRB(8, 4, 20, 0),
       child: Row(
         children: [
           SizedBox(
@@ -264,32 +268,62 @@ class _BottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-      child: Row(
-        children: [
-          if (onSkip != null)
-            TextButton(
-              onPressed: onSkip,
-              child: Text(l.onboardingSkip),
-            ),
-          const Spacer(),
-          FilledButton(
-            onPressed: isSaving ? null : onNext,
-            style: FilledButton.styleFrom(
-              backgroundColor: currentCategory?.color ?? AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-            child: isSaving
-                ? const SizedBox(
-                    width: 20, height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : Text(_nextLabel(),
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
           ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            if (onSkip != null)
+              Expanded(
+                flex: 2,
+                child: TextButton(
+                  onPressed: onSkip,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(l.onboardingSkip, maxLines: 1, overflow: TextOverflow.ellipsis),
+                ),
+              )
+            else
+              const Spacer(flex: 2),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 3,
+              child: FilledButton(
+                onPressed: isSaving ? null : onNext,
+                style: FilledButton.styleFrom(
+                  backgroundColor: currentCategory?.color ?? AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                child: isSaving
+                    ? const SizedBox(
+                        width: 20, height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(
+                        _nextLabel(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -394,13 +428,17 @@ class _CategoryPage extends ConsumerWidget {
     required this.category,
     required this.templates,
     required this.lastDoneDates,
+    required this.customRecurrences,
     required this.onDatePicked,
+    required this.onRecurrencePicked,
   });
 
   final ReminderCategory category;
   final List<ReminderTemplate> templates;
   final Map<String, DateTime> lastDoneDates;
+  final Map<String, RecurrenceRule> customRecurrences;
   final void Function(String id, DateTime date) onDatePicked;
+  final void Function(String id, RecurrenceRule rule) onRecurrencePicked;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -502,8 +540,10 @@ class _CategoryPage extends ConsumerWidget {
               template: tpl,
               isSelected: isSelected,
               lastDoneDate: lastDoneDates[tpl.id],
+              customRecurrence: customRecurrences[tpl.id],
               onToggle: () => notifier.toggle(tpl.id),
               onDatePicked: (date) => onDatePicked(tpl.id, date),
+              onRecurrencePicked: (rule) => onRecurrencePicked(tpl.id, rule),
             ).animate(delay: Duration(milliseconds: 40 + i * 40)).fadeIn().slideY(begin: 0.08);
           },
         ),
@@ -714,20 +754,25 @@ class _TemplateTile extends StatelessWidget {
     required this.template,
     required this.isSelected,
     required this.lastDoneDate,
+    required this.customRecurrence,
     required this.onToggle,
     required this.onDatePicked,
+    required this.onRecurrencePicked,
   });
-
+ 
   final ReminderTemplate template;
   final bool isSelected;
   final DateTime? lastDoneDate;
+  final RecurrenceRule? customRecurrence;
   final VoidCallback onToggle;
   final void Function(DateTime) onDatePicked;
+  final void Function(RecurrenceRule) onRecurrencePicked;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l = AppLocalizations.of(context)!;
     final cat = template.category;
 
     return Padding(
@@ -783,16 +828,80 @@ class _TemplateTile extends StatelessWidget {
                 ),
               ),
             ),
-            if (isSelected && template.onboardingQuestion != null)
+            if (isSelected)
               Padding(
                 padding: const EdgeInsets.fromLTRB(48, 0, 14, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(template.onboardingQuestion!,
+                    if (template.onboardingQuestion != null) ...[
+                      Text(template.onboardingQuestion!,
+                          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
+                      const SizedBox(height: 6),
+                      _DateButton(selectedDate: lastDoneDate, color: cat.color, onPick: onDatePicked),
+                      const SizedBox(height: 12),
+                    ],
+                    Text(l.onboardingFrequencyLabel,
                         style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
                     const SizedBox(height: 6),
-                    _DateButton(selectedDate: lastDoneDate, color: cat.color, onPick: onDatePicked),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: () {
+                          final defaultMonths = template.defaultRecurrence.intervalMonths ?? 12;
+                          final baseOptions = [6, 12, 24, 36, 60];
+                          if (!baseOptions.contains(defaultMonths)) {
+                            baseOptions.add(defaultMonths);
+                            baseOptions.sort();
+                          }
+                          
+                          return baseOptions.map((m) {
+                            final rule = RecurrenceRule.customMonths(months: m);
+                            final current = customRecurrence ?? template.defaultRecurrence;
+                            final isSelected = current.intervalMonths == m;
+                            final isDefault = defaultMonths == m;
+                            
+                            String label;
+                            final years = m / 12;
+                            final isCs = Localizations.localeOf(context).languageCode == 'cs';
+                            
+                            if (m % 12 == 0) {
+                              if (isCs) {
+                                if (years == 1) label = "1 rok";
+                                else if (years < 5) label = "${years.toInt()} roky";
+                                else label = "${years.toInt()} let";
+                              } else {
+                                label = years == 1 ? "1 year" : "${years.toInt()} years";
+                              }
+                            } else {
+                              if (isCs) {
+                                if (m == 1) label = "1 měsíc";
+                                else if (m < 5) label = "$m měsíce";
+                                else label = "$m měsíců";
+                              } else {
+                                label = m == 1 ? "1 month" : "$m months";
+                              }
+                            }
+                            
+                            if (isDefault) label += " ${l.onboardingRecommended}";
+
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: ChoiceChip(
+                                label: Text(label, style: const TextStyle(fontSize: 11)),
+                                selected: isSelected,
+                                onSelected: (_) => onRecurrencePicked(rule),
+                                selectedColor: cat.color.withOpacity(0.2),
+                                labelStyle: TextStyle(
+                                  color: isSelected ? cat.color : null,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                ),
+                              ),
+                            );
+                          }).toList();
+                        }(),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -849,7 +958,7 @@ class _DateButton extends StatelessWidget {
       initialDatePickerMode: DatePickerMode.year,
       initialDate: initial,
       firstDate: DateTime(1990),
-      lastDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 18250)),
     );
     if (picked != null) onPick(picked);
   }

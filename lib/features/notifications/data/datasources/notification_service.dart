@@ -1,8 +1,12 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:fit_vis_reminder/core/theme/app_theme.dart';
+import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_priority.dart';
 
 abstract interface class NotificationService {
-  Future<void> initialize();
+  Future<void> initialize({
+    Map<String, String>? channelNames,
+    Map<String, String>? channelDescriptions,
+  });
   Future<bool> requestPermission();
   Future<bool> isAllowed();
   Future<void> schedule({
@@ -10,13 +14,17 @@ abstract interface class NotificationService {
     required String title,
     required String body,
     required DateTime scheduledAt,
+    ReminderPriority priority = ReminderPriority.normal,
     String channelKey = 'reminders',
     Map<String, String>? payload,
+    String? snoozeLabel,
+    String? doneLabel,
   });
   Future<void> cancel(int id);
   Future<void> cancelAllForReminder(int reminderId);
   Future<List<NotificationModel>> listScheduled();
   Future<void> cancelAll();
+  Future<void> showTestNotification({required String title, required String body});
 }
 
 class AwesomeNotificationService implements NotificationService {
@@ -24,34 +32,38 @@ class AwesomeNotificationService implements NotificationService {
   static const _channelImportant = 'important';
   static const _channelUpcoming = 'upcoming';
 
-  // Registered from main.dart after ProviderContainer is ready
   static Future<void> Function(String action, int reminderId)? _actionCallback;
-  static void setActionCallback(Future<void> Function(String action, int reminderId) cb) {
+
+  static void setActionCallback(
+    Future<void> Function(String action, int reminderId) cb,
+  ) {
     _actionCallback = cb;
   }
 
   @override
-  Future<void> initialize() async {
+  Future<void> initialize({
+    Map<String, String>? channelNames,
+    Map<String, String>? channelDescriptions,
+  }) async {
     await AwesomeNotifications().initialize(
       null,
       [
         NotificationChannel(
           channelGroupKey: 'life_track_group',
           channelKey: _channelReminders,
-          channelName: 'Připomínky',
-          channelDescription: 'Obecné připomínky životní údržby',
+          channelName: channelNames?[_channelReminders] ?? 'Reminders',
+          channelDescription: channelDescriptions?[_channelReminders] ?? 'General life maintenance reminders',
           defaultColor: AppColors.primary,
           ledColor: AppColors.primary,
           importance: NotificationImportance.High,
           channelShowBadge: true,
           playSound: true,
-          soundSource: null,
         ),
         NotificationChannel(
           channelGroupKey: 'life_track_group',
           channelKey: _channelImportant,
-          channelName: 'Důležité termíny',
-          channelDescription: 'Upozornění na blížící se důležité termíny',
+          channelName: channelNames?[_channelImportant] ?? 'Important Deadlines',
+          channelDescription: channelDescriptions?[_channelImportant] ?? 'Urgent notifications for upcoming deadlines',
           defaultColor: AppColors.accentRed,
           ledColor: AppColors.accentRed,
           importance: NotificationImportance.Max,
@@ -62,8 +74,8 @@ class AwesomeNotificationService implements NotificationService {
         NotificationChannel(
           channelGroupKey: 'life_track_group',
           channelKey: _channelUpcoming,
-          channelName: 'Nadcházející události',
-          channelDescription: 'Informace o událostech v dalších týdnech',
+          channelName: channelNames?[_channelUpcoming] ?? 'Upcoming Events',
+          channelDescription: channelDescriptions?[_channelUpcoming] ?? 'Information about events in the following weeks',
           defaultColor: AppColors.accent,
           ledColor: AppColors.accent,
           importance: NotificationImportance.Default,
@@ -98,10 +110,14 @@ class AwesomeNotificationService implements NotificationService {
   }
 
   @pragma('vm:entry-point')
-  static Future<void> _onNotificationCreated(ReceivedNotification notification) async {}
+  static Future<void> _onNotificationCreated(
+    ReceivedNotification notification,
+  ) async {}
 
   @pragma('vm:entry-point')
-  static Future<void> _onNotificationDisplayed(ReceivedNotification notification) async {}
+  static Future<void> _onNotificationDisplayed(
+    ReceivedNotification notification,
+  ) async {}
 
   @pragma('vm:entry-point')
   static Future<void> _onDismissReceived(ReceivedAction action) async {}
@@ -131,12 +147,16 @@ class AwesomeNotificationService implements NotificationService {
     required String title,
     required String body,
     required DateTime scheduledAt,
+    ReminderPriority priority = ReminderPriority.normal,
     String channelKey = _channelReminders,
     Map<String, String>? payload,
+    String? snoozeLabel,
+    String? doneLabel,
   }) async {
     if (scheduledAt.isBefore(DateTime.now())) return;
 
-    final channel = _selectChannel(scheduledAt);
+    final isHigh = priority == ReminderPriority.high;
+    final channel = isHigh ? _channelImportant : _selectChannel(scheduledAt);
 
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
@@ -158,13 +178,17 @@ class AwesomeNotificationService implements NotificationService {
       actionButtons: [
         NotificationActionButton(
           key: 'MARK_DONE',
-          label: 'Hotovo ✓',
+          label: doneLabel ?? (isHigh ? 'Understand ✓' : 'Done'),
           actionType: ActionType.SilentAction,
+          enabled: true,
+          autoDismissible: true,
         ),
         NotificationActionButton(
           key: 'SNOOZE',
-          label: 'Odložit',
+          label: snoozeLabel ?? 'Snooze',
           actionType: ActionType.SilentAction,
+          enabled: true,
+          autoDismissible: true,
         ),
       ],
     );
@@ -200,4 +224,60 @@ class AwesomeNotificationService implements NotificationService {
 
   @override
   Future<void> cancelAll() => AwesomeNotifications().cancelAll();
+
+  @override
+  Future<void> showTestNotification({required String title, required String body}) async {
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: -1, // Use a fixed ID for tests
+        channelKey: _channelImportant,
+        title: title,
+        body: body,
+        notificationLayout: NotificationLayout.Default,
+        category: NotificationCategory.Status,
+        wakeUpScreen: true,
+      ),
+    );
+  }
+}
+
+class WebNotificationService implements NotificationService {
+  @override
+  Future<void> initialize() async {
+    // Local notifications not supported on web via AwesomeNotifications
+  }
+
+  @override
+  Future<bool> requestPermission() async => true;
+
+  @override
+  Future<bool> isAllowed() async => true;
+
+  @override
+  Future<void> schedule({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledAt,
+    ReminderPriority priority = ReminderPriority.normal,
+    String channelKey = 'reminders',
+    Map<String, String>? payload,
+  }) async {
+    // Not supported
+  }
+
+  @override
+  Future<void> cancel(int id) async {}
+
+  @override
+  Future<void> cancelAllForReminder(int reminderId) async {}
+
+  @override
+  Future<List<NotificationModel>> listScheduled() async => [];
+
+  @override
+  Future<void> cancelAll() async {}
+
+  @override
+  Future<void> showTestNotification({required String title, required String body}) async {}
 }

@@ -13,6 +13,7 @@ abstract interface class ReminderRepository {
 
   Future<int> save(Reminder reminder);
   Future<void> saveAll(List<Reminder> reminders);
+  Future<void> replaceAll(List<Reminder> reminders);
   Future<void> delete(int id);
   Future<void> markCompleted(int id, DateTime completedAt);
   Future<void> updateDueDate(int id, DateTime newDueDate);

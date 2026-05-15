@@ -9,7 +9,7 @@ class AppLocalizationsCs extends AppLocalizations {
   AppLocalizationsCs([String locale = 'cs']) : super(locale);
 
   @override
-  String get appTitle => 'LifeTrack';
+  String get appTitle => 'FitVis Reminder';
 
   @override
   String get navDashboard => 'Přehled';
@@ -21,7 +21,10 @@ class AppLocalizationsCs extends AppLocalizations {
   String get navSettings => 'Nastavení';
 
   @override
-  String get onboardingWelcomeTitle => 'Vítejte v LifeTrack';
+  String get navTemplates => 'Šablony';
+
+  @override
+  String get onboardingWelcomeTitle => 'Vítejte ve FitVis Reminder';
 
   @override
   String get onboardingWelcomeSubtitle =>
@@ -278,7 +281,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get settingsLanguageEnglish => 'Angličtina';
 
   @override
-  String get settingsNotifications => 'Notifikace';
+  String get settingsNotifications => 'Oznámení';
 
   @override
   String get settingsNotificationsPermission => 'Povolení notifikací';
@@ -288,6 +291,15 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get settingsCancelAll => 'Zrušit vše';
+
+  @override
+  String get settingsTestNotification => 'Testovací notifikace';
+
+  @override
+  String get settingsTestNotificationDesc => 'Odeslat zkušební oznámení';
+
+  @override
+  String get settingsTestNotificationSent => 'Testovací notifikace odeslána';
 
   @override
   String get settingsAbout => 'O aplikaci';
@@ -306,6 +318,9 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get categoryFinance => 'Finance';
+
+  @override
+  String get categorySubscriptions => 'Předplatné';
 
   @override
   String get categoryHome => 'Domov';
@@ -339,6 +354,55 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get buttonBack => 'Zpět';
+
+  @override
+  String get onboardingFrequencyLabel => 'Frekvence připomínání:';
+
+  @override
+  String get onboardingRecommended => '(doporučeno)';
+
+  @override
+  String get settingsNotificationsTest => 'Testovací notifikace';
+
+  @override
+  String get settingsNotificationsTestHint =>
+      'Kliknutím odešlete okamžitou notifikaci pro ověření funkčnosti';
+
+  @override
+  String get reminderPriorityLabel => 'Důležitost (priorita):';
+
+  @override
+  String get reminderPriorityNormal => 'Normální';
+
+  @override
+  String get reminderPriorityHigh => 'Vysoká (Kritická)';
+
+  @override
+  String get reminderCustomRecurrence => 'Vlastní opakování...';
+
+  @override
+  String get reminderCustomNotification => 'Vlastní upozornění...';
+
+  @override
+  String get reminderCustomDays => 'Počet dní';
+
+  @override
+  String get reminderCustomMonths => 'Počet měsíců';
+
+  @override
+  String get reminderCustomYears => 'Počet let';
+
+  @override
+  String get reminderCustomLabel => 'Vlastní';
+
+  @override
+  String get greetingMorning => 'Dobré ráno ☀️';
+
+  @override
+  String get greetingAfternoon => 'Dobrý den 👋';
+
+  @override
+  String get greetingEvening => 'Dobrý večer 🌙';
 
   @override
   String get reminderDetailSnooze => 'Odložit o týden';
@@ -391,4 +455,263 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get selectionDeleteHint => 'Tuto akci nelze vrátit.';
+
+  @override
+  String get settingsSectionSecurity => 'Bezpečnost';
+
+  @override
+  String get settingsAppLock => 'Zámek aplikace (PIN)';
+
+  @override
+  String settingsAppLockEnabled(int minutes) {
+    return 'Zapnuto, timeout $minutes min';
+  }
+
+  @override
+  String get settingsAppLockDisabled => 'Vypnuto';
+
+  @override
+  String get settingsAppLockTimeout => 'Timeout zamčení';
+
+  @override
+  String settingsAppLockTimeoutValue(int minutes) {
+    return '$minutes minut';
+  }
+
+  @override
+  String get settingsAppLockNow => 'Zamknout teď';
+
+  @override
+  String get settingsPinInvalid => 'PIN je neplatný nebo se neshoduje.';
+
+  @override
+  String get settingsPinSet => 'Nastavit PIN';
+
+  @override
+  String get settingsPinLabel => 'PIN (4-6 číslic)';
+
+  @override
+  String get settingsPinConfirm => 'Potvrzení PIN';
+
+  @override
+  String get appLockTitle => 'Aplikace je zamčená';
+
+  @override
+  String get appLockSubtitle => 'Zadej PIN pro odemknutí.';
+
+  @override
+  String get appLockPinLabel => 'PIN';
+
+  @override
+  String get appLockUnlock => 'Odemknout';
+
+  @override
+  String get appLockInvalidPin => 'Neplatný PIN';
+
+  @override
+  String get settingsSectionBackup => 'Záloha';
+
+  @override
+  String get settingsBackupExport => 'Exportovat zálohu';
+
+  @override
+  String get settingsBackupExportHint =>
+      'Uloží JSON soubor do dokumentů aplikace';
+
+  @override
+  String get settingsBackupImport => 'Importovat zálohu (JSON)';
+
+  @override
+  String get settingsBackupImportHint => 'Nahradí aktuální data';
+
+  @override
+  String settingsBackupExportSuccess(String path) {
+    return 'Záloha uložena: $path';
+  }
+
+  @override
+  String get settingsBackupImportConfirmTitle => 'Nahradit aktuální data?';
+
+  @override
+  String get settingsBackupImportConfirmBody =>
+      'Import přepíše všechny aktuální připomínky. Tuto akci nelze vrátit.';
+
+  @override
+  String get settingsBackupImportDialogTitle => 'Import JSON zálohy';
+
+  @override
+  String get settingsBackupImportDialogHint => 'Vlož obsah JSON zálohy sem...';
+
+  @override
+  String settingsBackupImportSuccess(int count) {
+    return 'Importováno $count připomínek.';
+  }
+
+  @override
+  String get settingsBackupImportError =>
+      'Import se nepovedl. Zkontroluj JSON.';
+
+  @override
+  String get backupExportWebError =>
+      'Export do souboru není na webu podporován. Použijte stažení JSON.';
+
+  @override
+  String get templatesTitle => 'Knihovna šablon';
+
+  @override
+  String get templatesSearchHint => 'Hledat šablony...';
+
+  @override
+  String get templatesEmpty => 'Žádné šablony nenalezeny';
+
+  @override
+  String templatesAddSuccess(String title) {
+    return 'Připomínka \'$title\' byla přidána';
+  }
+
+  @override
+  String dashboardStatusOverdue(int count) {
+    return 'Máte $count restů k vyřízení';
+  }
+
+  @override
+  String get dashboardStatusAllGood => 'Vše je v naprostém pořádku ✨';
+
+  @override
+  String get appLockForgotPin => 'Zapomněli jste PIN?';
+
+  @override
+  String get filterHighPriority => 'VYSOKÁ PRIORITA';
+
+  @override
+  String get remindersFilterNoResults => 'Žádné výsledky';
+
+  @override
+  String get remindersFilterNoResultsHint =>
+      'Zkuste jiný filtr nebo vyhledávání';
+
+  @override
+  String get errorTitle => 'Něco se pokazilo';
+
+  @override
+  String get errorSubtitle => 'Zkus to prosím za chvíli znovu.';
+
+  @override
+  String get settingsSectionPerformance => 'Výkon a Oznámení';
+
+  @override
+  String get settingsNotifHorizon => 'Horizont plánování';
+
+  @override
+  String settingsNotifHorizonValue(int months) {
+    return '$months měsíců';
+  }
+
+  @override
+  String get settingsNotifLimit => 'Max. upozornění na položku';
+
+  @override
+  String get settingsNotifLimitOnlyNext => 'Jen nejbližší (optimalizováno)';
+
+  @override
+  String settingsNotifLimitValue(int count) {
+    return '$count upozornění';
+  }
+
+  @override
+  String get settingsNotifLimitAll => 'Bez omezení';
+
+  @override
+  String get settingsBackupCloud => 'Zálohovat do Cloudu (Drive/iCloud)';
+
+  @override
+  String get notificationActionSnooze => 'Odložit';
+
+  @override
+  String get notificationActionDone => 'Hotovo';
+
+  @override
+  String get notificationActionUnderstand => 'Rozumím ✓';
+
+  @override
+  String notificationBodyToday(Object title) {
+    return 'Dnes nastává termín: $title';
+  }
+
+  @override
+  String notificationBodyTomorrow(Object title) {
+    return 'Zítra nastává termín: $title';
+  }
+
+  @override
+  String notificationBodyInDays(int days, String title) {
+    return 'Za $days dní nastává termín: $title';
+  }
+
+  @override
+  String notificationBodyRemind(String date, String title) {
+    return 'Připomenutí: $title - $date';
+  }
+
+  @override
+  String get backupShareSubject => 'FitVis Reminder Záloha';
+
+  @override
+  String get backupShareText => 'Záloha mých připomínek z FitVis Reminder';
+
+  @override
+  String get notificationChannelReminders => 'Připomínky';
+
+  @override
+  String get notificationChannelRemindersDesc =>
+      'Obecné připomínky životní údržby';
+
+  @override
+  String get notificationChannelImportant => 'Důležité termíny';
+
+  @override
+  String get notificationChannelImportantDesc =>
+      'Upozornění na blížící se důležité termíny';
+
+  @override
+  String get notificationChannelUpcoming => 'Nadcházející události';
+
+  @override
+  String get notificationChannelUpcomingDesc =>
+      'Informace o událostech v dalších týdnech';
+
+  @override
+  String reminderDetailOverdueCount(int days) {
+    return '${days}d po termínu';
+  }
+
+  @override
+  String get reminderDetailDueToday => 'Dnes';
+
+  @override
+  String get reminderDetailDueTomorrow => 'Zítra';
+
+  @override
+  String reminderDetailDueInDays(int days) {
+    return 'Za ${days}d';
+  }
+
+  @override
+  String get reminderNotFound => 'Připomínka nenalezena';
+
+  @override
+  String get settingsAboutDesc => 'Systém pro údržbu životních termínů';
+
+  @override
+  String get reminderMarkDoneAction => 'Označit jako splněné';
+
+  @override
+  String get priorityHigh => 'VYSOKÁ PRIORITA';
+
+  @override
+  String get settingsCalendarSync => 'Synchronizace s kalendářem';
+
+  @override
+  String get settingsCalendarSyncHint =>
+      'Automaticky přidávat termíny do systémového kalendáře';
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fit_vis_reminder/core/utils/app_router.dart';
 import 'package:fit_vis_reminder/core/theme/app_theme.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
+import 'package:fit_vis_reminder/features/reminders/data/services/sharing_service.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_category.dart';
 import 'package:fit_vis_reminder/features/reminders/presentation/providers/reminders_provider.dart';
 import 'package:fit_vis_reminder/shared/widgets/reminder_card.dart';
@@ -11,6 +13,7 @@ import 'package:fit_vis_reminder/l10n/app_localizations.dart';
 
 final _selectedCategoryProvider = StateProvider<ReminderCategory?>((ref) => null);
 final _searchQueryProvider = StateProvider<String>((ref) => '');
+final _onlyHighPriorityProvider = StateProvider<bool>((ref) => false);
 final _selectionModeProvider = StateProvider<bool>((ref) => false);
 final _selectedIdsProvider = StateProvider<Set<int>>((ref) => {});
 
@@ -39,7 +42,7 @@ class RemindersListPage extends ConsumerWidget {
         floatingActionButton: selectionMode
             ? null
             : FloatingActionButton.extended(
-                onPressed: () => context.push('/reminders/add'),
+                onPressed: () => context.push(AppRoutes.reminderAdd),
                 icon: const Icon(Icons.add_rounded),
                 label: Text(l.buttonAdd),
               ),
@@ -53,11 +56,10 @@ class RemindersListPage extends ConsumerWidget {
               )
             : null,
         body: CustomScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
-            // ── App bar ─────────────────────────────────────────────────
             SliverAppBar(
               pinned: true,
-              expandedHeight: 110,
               backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
               surfaceTintColor: Colors.transparent,
               leading: selectionMode
@@ -69,28 +71,9 @@ class RemindersListPage extends ConsumerWidget {
                       },
                     )
                   : null,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                title: selectionMode
-                    ? Text(
-                        l.selectionCount(selectedIds.length),
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                        ),
-                      )
-                    : Text(
-                        l.remindersTitle,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.5,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                        ),
-                      ),
-                expandedTitleScale: 1.0,
-              ),
+              title: selectionMode
+                  ? Text(l.selectionCount(selectedIds.length))
+                  : Text(l.remindersTitle),
               actions: selectionMode
                   ? [
                       TextButton(
@@ -99,13 +82,12 @@ class RemindersListPage extends ConsumerWidget {
                           final ids = all.map((r) => r.id).toSet();
                           ref.read(_selectedIdsProvider.notifier).state = ids;
                         },
-                        child: const Text('Vybrat vše'),
+                        child: Text(l.onboardingSelectAll),
                       ),
                     ]
                   : const [],
             ),
 
-            // ── Search bar ──────────────────────────────────────────────
             if (!selectionMode)
               SliverPersistentHeader(
                 pinned: true,
@@ -116,25 +98,30 @@ class RemindersListPage extends ConsumerWidget {
                 ),
               ),
 
-            // ── Category chips ──────────────────────────────────────────
             if (!selectionMode)
               SliverPersistentHeader(
                 pinned: false,
-                delegate: _CategoryFilterDelegate(
-                  selected: selectedCategory,
+                delegate: _FilterBarDelegate(
+                  selectedCategory: selectedCategory,
+                  onlyHighPriority: ref.watch(_onlyHighPriorityProvider),
                   isDark: isDark,
-                  onSelect: (cat) =>
+                  onSelectCategory: (cat) =>
                       ref.read(_selectedCategoryProvider.notifier).state =
                           selectedCategory == cat ? null : cat,
+                  onTogglePriority: () =>
+                      ref.read(_onlyHighPriorityProvider.notifier).state =
+                          !ref.read(_onlyHighPriorityProvider),
                 ),
               ),
 
-            // ── List ────────────────────────────────────────────────────
             allAsync.when(
               data: (all) {
                 var filtered = all;
                 if (selectedCategory != null) {
                   filtered = filtered.where((r) => r.category == selectedCategory).toList();
+                }
+                if (ref.watch(_onlyHighPriorityProvider)) {
+                  filtered = filtered.where((r) => r.priority == ReminderPriority.high).toList();
                 }
                 if (searchQuery.isNotEmpty) {
                   final q = searchQuery.toLowerCase();
@@ -182,8 +169,9 @@ class RemindersListPage extends ConsumerWidget {
                             selectionMode: selectionMode,
                             isSelected: selectedIds.contains(r.id),
                             animationDelay: Duration(milliseconds: (i - 1) * 40),
-                            onTap: () => context.push('/reminders/${r.id}'),
-                            onDone: () => ref.read(reminderNotifierProvider.notifier).markDone(r),
+                            onTap: () => context.push(AppRoutes.reminderDetailPath(r.id)),
+                            onDone: () => _markDoneWithUndo(context, ref, r, l),
+                            onDelete: () => ref.read(reminderNotifierProvider.notifier).deleteReminder(r.id),
                             onLongPress: () => _enterSelection(ref, r.id),
                             onToggle: () => _toggleSelection(ref, r.id, selectedIds),
                           );
@@ -206,8 +194,9 @@ class RemindersListPage extends ConsumerWidget {
                           selectionMode: selectionMode,
                           isSelected: selectedIds.contains(r.id),
                           animationDelay: Duration(milliseconds: (i - 1) * 40),
-                          onTap: () => context.push('/reminders/${r.id}'),
-                          onDone: () => ref.read(reminderNotifierProvider.notifier).markDone(r),
+                          onTap: () => context.push(AppRoutes.reminderDetailPath(r.id)),
+                          onDone: () => _markDoneWithUndo(context, ref, r, l),
+                          onDelete: () => ref.read(reminderNotifierProvider.notifier).deleteReminder(r.id),
                           onLongPress: () => _enterSelection(ref, r.id),
                           onToggle: () => _toggleSelection(ref, r.id, selectedIds),
                         );
@@ -223,11 +212,31 @@ class RemindersListPage extends ConsumerWidget {
                   child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                 ),
               ),
-              error: (e, _) => SliverFillRemaining(
-                child: Center(child: Text('Chyba: $e')),
+              error: (_, __) => const SliverFillRemaining(
+                child: _ErrorState(),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _markDoneWithUndo(BuildContext context, WidgetRef ref, Reminder reminder, AppLocalizations l) async {
+    await ref.read(reminderNotifierProvider.notifier).markDone(reminder, l);
+    if (!context.mounted) return;
+    
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l.reminderDetailMarkDone),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        action: SnackBarAction(
+          label: l.buttonCancel.toUpperCase(),
+          onPressed: () {
+            // Placeholder for undo
+          },
         ),
       ),
     );
@@ -252,8 +261,6 @@ class RemindersListPage extends ConsumerWidget {
   }
 }
 
-// ── Selectable card wrapper ────────────────────────────────────────────────
-
 class _SelectableCard extends StatelessWidget {
   const _SelectableCard({
     required this.reminder,
@@ -264,6 +271,7 @@ class _SelectableCard extends StatelessWidget {
     required this.onDone,
     required this.onLongPress,
     required this.onToggle,
+    required this.onDelete,
   });
 
   final Reminder reminder;
@@ -274,10 +282,12 @@ class _SelectableCard extends StatelessWidget {
   final VoidCallback onDone;
   final VoidCallback onLongPress;
   final VoidCallback onToggle;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    Widget card = Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
         onLongPress: onLongPress,
@@ -289,7 +299,6 @@ class _SelectableCard extends StatelessWidget {
               onTap: selectionMode ? onToggle : onTap,
               onDone: selectionMode ? null : onDone,
             ),
-            // Selection overlay
             if (selectionMode)
               Positioned.fill(
                 child: AnimatedContainer(
@@ -332,10 +341,27 @@ class _SelectableCard extends StatelessWidget {
         ),
       ),
     );
+
+    if (selectionMode) return card;
+
+    return Dismissible(
+      key: Key('rem_${reminder.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(right: 24),
+        decoration: BoxDecoration(
+          color: AppColors.accentRed.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
+      ),
+      onDismissed: (_) => onDelete(),
+      child: card,
+    );
   }
 }
-
-// ── Bulk action bar ────────────────────────────────────────────────────────
 
 class _BulkActionBar extends StatelessWidget {
   const _BulkActionBar({
@@ -393,7 +419,23 @@ class _BulkActionBar extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              onPressed: count == 0
+                  ? null
+                  : () async {
+                      final all = allAsync.valueOrNull ?? [];
+                      final selected = all.where((r) => selectedIds.contains(r.id)).toList();
+                      await SharingService().shareReminders(selected);
+                    },
+              icon: const Icon(Icons.ios_share_rounded, size: 20),
+              tooltip: l.buttonShare,
+              style: IconButton.styleFrom(
+                minimumSize: const Size(48, 48),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: FilledButton.icon(
                 onPressed: count == 0
@@ -401,7 +443,7 @@ class _BulkActionBar extends StatelessWidget {
                     : () async {
                         final all = allAsync.valueOrNull ?? [];
                         final selected = all.where((r) => selectedIds.contains(r.id)).toList();
-                        await ref.read(reminderNotifierProvider.notifier).markDoneMultiple(selected);
+                        await ref.read(reminderNotifierProvider.notifier).markDoneMultiple(selected, l);
                         ref.read(_selectionModeProvider.notifier).state = false;
                         ref.read(_selectedIdsProvider.notifier).state = {};
                       },
@@ -439,8 +481,6 @@ class _BulkActionBar extends StatelessWidget {
     );
   }
 }
-
-// ── Search persistent header ───────────────────────────────────────────────
 
 class _SearchDelegate extends SliverPersistentHeaderDelegate {
   _SearchDelegate({required this.isDark, required this.hint, required this.onChanged});
@@ -492,24 +532,34 @@ class _SearchFieldState extends State<_SearchField> {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: widget.isDark ? AppColors.cardDark : AppColors.backgroundAlt,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: widget.isDark ? AppColors.borderDark : AppColors.borderLight),
+        color: widget.isDark ? AppColors.cardDarkElevated : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: widget.isDark ? AppColors.borderDark : AppColors.borderLight.withOpacity(0.5),
+        ),
+        boxShadow: cardShadow(widget.isDark),
       ),
       child: Row(
         children: [
           const Padding(
             padding: EdgeInsets.only(left: 14),
-            child: Icon(Icons.search_rounded, size: 20, color: AppColors.textTertiary),
+            child: Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
           ),
           Expanded(
             child: TextField(
               controller: _ctrl,
-              onChanged: widget.onChanged,
-              style: const TextStyle(fontSize: 15),
+              onChanged: (value) {
+                widget.onChanged(value);
+                setState(() {});
+              },
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               decoration: InputDecoration(
                 hintText: widget.hint,
-                hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 15),
+                hintStyle: TextStyle(
+                  color: widget.isDark ? AppColors.textSecondaryDark : AppColors.textTertiary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                ),
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -520,16 +570,13 @@ class _SearchFieldState extends State<_SearchField> {
             ),
           ),
           if (_ctrl.text.isNotEmpty)
-            GestureDetector(
-              onTap: () {
+            IconButton(
+              icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.textSecondary),
+              onPressed: () {
                 _ctrl.clear();
                 widget.onChanged('');
                 setState(() {});
               },
-              child: const Padding(
-                padding: EdgeInsets.only(right: 12),
-                child: Icon(Icons.close_rounded, size: 18, color: AppColors.textTertiary),
-              ),
             ),
         ],
       ),
@@ -537,14 +584,20 @@ class _SearchFieldState extends State<_SearchField> {
   }
 }
 
-// ── Category filter persistent header ─────────────────────────────────────
+class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
+  _FilterBarDelegate({
+    required this.selectedCategory,
+    required this.onlyHighPriority,
+    required this.isDark,
+    required this.onSelectCategory,
+    required this.onTogglePriority,
+  });
 
-class _CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
-  _CategoryFilterDelegate({required this.selected, required this.isDark, required this.onSelect});
-
-  final ReminderCategory? selected;
+  final ReminderCategory? selectedCategory;
+  final bool onlyHighPriority;
   final bool isDark;
-  final void Function(ReminderCategory) onSelect;
+  final void Function(ReminderCategory) onSelectCategory;
+  final VoidCallback onTogglePriority;
 
   @override
   double get minExtent => 52;
@@ -555,56 +608,52 @@ class _CategoryFilterDelegate extends SliverPersistentHeaderDelegate {
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: isDark ? AppColors.backgroundDark : AppColors.background,
-      child: ListView.separated(
+      child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-        itemCount: ReminderCategory.values.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          final cat = ReminderCategory.values[i];
-          final isSelected = selected == cat;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              color: isSelected ? cat.color : isDark ? AppColors.cardDark : AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isSelected ? cat.color : isDark ? AppColors.borderDark : AppColors.borderLight,
-              ),
+        children: [
+          FilterChip(
+            label: Text(AppLocalizations.of(context)!.filterHighPriority),
+            selected: onlyHighPriority,
+            onSelected: (_) => onTogglePriority(),
+            selectedColor: AppColors.accentRed.withOpacity(0.15),
+            checkmarkColor: AppColors.accentRed,
+            labelStyle: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: onlyHighPriority ? AppColors.accentRed : AppColors.textSecondary,
+              letterSpacing: 0.5,
             ),
-            child: InkWell(
-              onTap: () => onSelect(cat),
-              borderRadius: BorderRadius.circular(10),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(cat.emoji, style: const TextStyle(fontSize: 14)),
-                    const SizedBox(width: 6),
-                    Text(
-                      cat.label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+          ),
+          const VerticalDivider(width: 24, indent: 8, endIndent: 8),
+          ...ReminderCategory.values.map((cat) {
+            final isSelected = selectedCategory == cat;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text('${cat.emoji} ${cat.label}'),
+                selected: isSelected,
+                onSelected: (_) => onSelectCategory(cat),
+                selectedColor: cat.color.withOpacity(0.12),
+                labelStyle: TextStyle(
+                  fontSize: 12,
+                  color: isSelected ? cat.color : isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
-            ),
-          );
-        },
+            );
+          }),
+        ],
       ),
     );
   }
 
   @override
-  bool shouldRebuild(_CategoryFilterDelegate old) => old.selected != selected || old.isDark != isDark;
+  bool shouldRebuild(_FilterBarDelegate old) =>
+      old.selectedCategory != selectedCategory ||
+      old.onlyHighPriority != onlyHighPriority ||
+      old.isDark != isDark;
 }
-
-// ── Group header ───────────────────────────────────────────────────────────
 
 class _GroupHeader extends StatelessWidget {
   const _GroupHeader({required this.title, required this.count, required this.color, required this.icon});
@@ -617,22 +666,42 @@ class _GroupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 10),
+      padding: const EdgeInsets.only(top: 12, bottom: 8, left: 4),
       child: Row(
         children: [
-          Icon(icon, size: 15, color: color),
-          const SizedBox(width: 6),
-          Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color, letterSpacing: 0.2)),
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 12, color: color),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: 0.8,
+            ),
+          ),
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
+              color: color.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               count.toString(),
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
             ),
           ),
         ],
@@ -640,8 +709,6 @@ class _GroupHeader extends StatelessWidget {
     );
   }
 }
-
-// ── Empty state ────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.hasFilters, required this.l});
@@ -665,21 +732,52 @@ class _EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(hasFilters ? '🔍' : '📋', style: const TextStyle(fontSize: 36)),
+                child: Text(hasFilters ? '🔎' : '📋', style: const TextStyle(fontSize: 36)),
               ),
             ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
             const SizedBox(height: 24),
             Text(
-              hasFilters ? 'Žádné výsledky' : l.remindersEmpty,
+              hasFilters ? l.remindersFilterNoResults : l.remindersEmpty,
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 100.ms),
             const SizedBox(height: 8),
             Text(
-              hasFilters ? 'Zkuste jiný filtr nebo vyhledávání' : l.remindersEmptyHint,
+              hasFilters ? l.remindersFilterNoResultsHint : l.remindersEmptyHint,
               style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary, height: 1.5),
               textAlign: TextAlign.center,
             ).animate().fadeIn(delay: 160.ms),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline_rounded, color: AppColors.accentRed, size: 36),
+            const SizedBox(height: 10),
+            Text(
+              l.errorTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l.errorSubtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
           ],
         ),
       ),

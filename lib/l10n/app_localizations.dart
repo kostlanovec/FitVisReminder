@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'LifeTrack'**
+  /// **'FitVis Reminder'**
   String get appTitle;
 
   /// No description provided for @navDashboard.
@@ -122,10 +122,16 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get navSettings;
 
+  /// No description provided for @navTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get navTemplates;
+
   /// No description provided for @onboardingWelcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to LifeTrack'**
+  /// **'Welcome to FitVis Reminder'**
   String get onboardingWelcomeTitle;
 
   /// No description provided for @onboardingWelcomeSubtitle.
@@ -644,6 +650,24 @@ abstract class AppLocalizations {
   /// **'Cancel all'**
   String get settingsCancelAll;
 
+  /// No description provided for @settingsTestNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Test notification'**
+  String get settingsTestNotification;
+
+  /// No description provided for @settingsTestNotificationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a trial notification'**
+  String get settingsTestNotificationDesc;
+
+  /// No description provided for @settingsTestNotificationSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test notification sent'**
+  String get settingsTestNotificationSent;
+
   /// No description provided for @settingsAbout.
   ///
   /// In en, this message translates to:
@@ -679,6 +703,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finance'**
   String get categoryFinance;
+
+  /// No description provided for @categorySubscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get categorySubscriptions;
 
   /// No description provided for @categoryHome.
   ///
@@ -745,6 +775,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get buttonBack;
+
+  /// No description provided for @onboardingFrequencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder frequency:'**
+  String get onboardingFrequencyLabel;
+
+  /// No description provided for @onboardingRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'(recommended)'**
+  String get onboardingRecommended;
+
+  /// No description provided for @settingsNotificationsTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Notification'**
+  String get settingsNotificationsTest;
+
+  /// No description provided for @settingsNotificationsTestHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to send an immediate notification to verify functionality'**
+  String get settingsNotificationsTestHint;
+
+  /// No description provided for @reminderPriorityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Importance (Priority):'**
+  String get reminderPriorityLabel;
+
+  /// No description provided for @reminderPriorityNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get reminderPriorityNormal;
+
+  /// No description provided for @reminderPriorityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High (Critical)'**
+  String get reminderPriorityHigh;
+
+  /// No description provided for @reminderCustomRecurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom recurrence...'**
+  String get reminderCustomRecurrence;
+
+  /// No description provided for @reminderCustomNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom notification...'**
+  String get reminderCustomNotification;
+
+  /// No description provided for @reminderCustomDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get reminderCustomDays;
+
+  /// No description provided for @reminderCustomMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Months'**
+  String get reminderCustomMonths;
+
+  /// No description provided for @reminderCustomYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Years'**
+  String get reminderCustomYears;
+
+  /// No description provided for @reminderCustomLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get reminderCustomLabel;
+
+  /// No description provided for @greetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning ☀️'**
+  String get greetingMorning;
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon 👋'**
+  String get greetingAfternoon;
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening 🌙'**
+  String get greetingEvening;
 
   /// No description provided for @reminderDetailSnooze.
   ///
@@ -829,6 +955,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This action cannot be undone.'**
   String get selectionDeleteHint;
+
+  /// No description provided for @settingsSectionSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get settingsSectionSecurity;
+
+  /// No description provided for @settingsAppLock.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock (PIN)'**
+  String get settingsAppLock;
+
+  /// No description provided for @settingsAppLockEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled, timeout {minutes} min'**
+  String settingsAppLockEnabled(int minutes);
+
+  /// No description provided for @settingsAppLockDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get settingsAppLockDisabled;
+
+  /// No description provided for @settingsAppLockTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-lock timeout'**
+  String get settingsAppLockTimeout;
+
+  /// No description provided for @settingsAppLockTimeoutValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes'**
+  String settingsAppLockTimeoutValue(int minutes);
+
+  /// No description provided for @settingsAppLockNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock now'**
+  String get settingsAppLockNow;
+
+  /// No description provided for @settingsPinInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN is invalid or does not match.'**
+  String get settingsPinInvalid;
+
+  /// No description provided for @settingsPinSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set PIN'**
+  String get settingsPinSet;
+
+  /// No description provided for @settingsPinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN (4-6 digits)'**
+  String get settingsPinLabel;
+
+  /// No description provided for @settingsPinConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm PIN'**
+  String get settingsPinConfirm;
+
+  /// No description provided for @appLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App is locked'**
+  String get appLockTitle;
+
+  /// No description provided for @appLockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN to unlock.'**
+  String get appLockSubtitle;
+
+  /// No description provided for @appLockPinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN'**
+  String get appLockPinLabel;
+
+  /// No description provided for @appLockUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get appLockUnlock;
+
+  /// No description provided for @appLockInvalidPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid PIN'**
+  String get appLockInvalidPin;
+
+  /// No description provided for @settingsSectionBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get settingsSectionBackup;
+
+  /// No description provided for @settingsBackupExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export backup'**
+  String get settingsBackupExport;
+
+  /// No description provided for @settingsBackupExportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saves a JSON file to app documents'**
+  String get settingsBackupExportHint;
+
+  /// No description provided for @settingsBackupImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import backup (JSON)'**
+  String get settingsBackupImport;
+
+  /// No description provided for @settingsBackupImportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Replaces current data'**
+  String get settingsBackupImportHint;
+
+  /// No description provided for @settingsBackupExportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved: {path}'**
+  String settingsBackupExportSuccess(String path);
+
+  /// No description provided for @settingsBackupImportConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace current data?'**
+  String get settingsBackupImportConfirmTitle;
+
+  /// No description provided for @settingsBackupImportConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Import will overwrite all current reminders. This action cannot be undone.'**
+  String get settingsBackupImportConfirmBody;
+
+  /// No description provided for @settingsBackupImportDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import JSON backup'**
+  String get settingsBackupImportDialogTitle;
+
+  /// No description provided for @settingsBackupImportDialogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste JSON backup content here...'**
+  String get settingsBackupImportDialogHint;
+
+  /// No description provided for @settingsBackupImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {count} reminders.'**
+  String settingsBackupImportSuccess(int count);
+
+  /// No description provided for @settingsBackupImportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed. Check JSON format.'**
+  String get settingsBackupImportError;
+
+  /// No description provided for @backupExportWebError.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to file is not supported on web. Use JSON download instead.'**
+  String get backupExportWebError;
+
+  /// No description provided for @templatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Template Library'**
+  String get templatesTitle;
+
+  /// No description provided for @templatesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search templates...'**
+  String get templatesSearchHint;
+
+  /// No description provided for @templatesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates found'**
+  String get templatesEmpty;
+
+  /// No description provided for @templatesAddSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder \'{title}\' added'**
+  String templatesAddSuccess(String title);
+
+  /// No description provided for @dashboardStatusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {count} tasks to handle'**
+  String dashboardStatusOverdue(int count);
+
+  /// No description provided for @dashboardStatusAllGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is in perfect order ✨'**
+  String get dashboardStatusAllGood;
+
+  /// No description provided for @appLockForgotPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot PIN?'**
+  String get appLockForgotPin;
+
+  /// No description provided for @filterHighPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH PRIORITY'**
+  String get filterHighPriority;
+
+  /// No description provided for @remindersFilterNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get remindersFilterNoResults;
+
+  /// No description provided for @remindersFilterNoResultsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another filter or search'**
+  String get remindersFilterNoResultsHint;
+
+  /// No description provided for @errorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get errorTitle;
+
+  /// No description provided for @errorSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please try again in a moment.'**
+  String get errorSubtitle;
+
+  /// No description provided for @settingsSectionPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance & Notifications'**
+  String get settingsSectionPerformance;
+
+  /// No description provided for @settingsNotifHorizon.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduling Horizon'**
+  String get settingsNotifHorizon;
+
+  /// No description provided for @settingsNotifHorizonValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{months} months'**
+  String settingsNotifHorizonValue(int months);
+
+  /// No description provided for @settingsNotifLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Max triggers per reminder'**
+  String get settingsNotifLimit;
+
+  /// No description provided for @settingsNotifLimitOnlyNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Only next (optimized)'**
+  String get settingsNotifLimitOnlyNext;
+
+  /// No description provided for @settingsNotifLimitValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} triggers'**
+  String settingsNotifLimitValue(int count);
+
+  /// No description provided for @settingsNotifLimitAll.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get settingsNotifLimitAll;
+
+  /// No description provided for @settingsBackupCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Backup (Drive/iCloud)'**
+  String get settingsBackupCloud;
+
+  /// No description provided for @notificationActionSnooze.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze'**
+  String get notificationActionSnooze;
+
+  /// No description provided for @notificationActionDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get notificationActionDone;
+
+  /// No description provided for @notificationActionUnderstand.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand ✓'**
+  String get notificationActionUnderstand;
+
+  /// No description provided for @notificationBodyToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today is the deadline: {title}'**
+  String notificationBodyToday(Object title);
+
+  /// No description provided for @notificationBodyTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow is the deadline: {title}'**
+  String notificationBodyTomorrow(Object title);
+
+  /// No description provided for @notificationBodyInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {days} days is the deadline: {title}'**
+  String notificationBodyInDays(int days, String title);
+
+  /// No description provided for @notificationBodyRemind.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder: {title} - {date}'**
+  String notificationBodyRemind(String date, String title);
+
+  /// No description provided for @backupShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'FitVis Reminder Backup'**
+  String get backupShareSubject;
+
+  /// No description provided for @backupShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'My reminders backup from FitVis Reminder'**
+  String get backupShareText;
+
+  /// No description provided for @notificationChannelReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get notificationChannelReminders;
+
+  /// No description provided for @notificationChannelRemindersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'General life maintenance reminders'**
+  String get notificationChannelRemindersDesc;
+
+  /// No description provided for @notificationChannelImportant.
+  ///
+  /// In en, this message translates to:
+  /// **'Important Deadlines'**
+  String get notificationChannelImportant;
+
+  /// No description provided for @notificationChannelImportantDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent notifications for upcoming deadlines'**
+  String get notificationChannelImportantDesc;
+
+  /// No description provided for @notificationChannelUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Events'**
+  String get notificationChannelUpcoming;
+
+  /// No description provided for @notificationChannelUpcomingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Information about events in the following weeks'**
+  String get notificationChannelUpcomingDesc;
+
+  /// No description provided for @reminderDetailOverdueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d overdue'**
+  String reminderDetailOverdueCount(int days);
+
+  /// No description provided for @reminderDetailDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get reminderDetailDueToday;
+
+  /// No description provided for @reminderDetailDueTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get reminderDetailDueTomorrow;
+
+  /// No description provided for @reminderDetailDueInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'In {days}d'**
+  String reminderDetailDueInDays(int days);
+
+  /// No description provided for @reminderNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder not found'**
+  String get reminderNotFound;
+
+  /// No description provided for @settingsAboutDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Life maintenance system'**
+  String get settingsAboutDesc;
+
+  /// No description provided for @reminderMarkDoneAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as completed'**
+  String get reminderMarkDoneAction;
+
+  /// No description provided for @priorityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'HIGH PRIORITY'**
+  String get priorityHigh;
+
+  /// No description provided for @settingsCalendarSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar Synchronization'**
+  String get settingsCalendarSync;
+
+  /// No description provided for @settingsCalendarSyncHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically add deadlines to system calendar'**
+  String get settingsCalendarSyncHint;
 }
 
 class _AppLocalizationsDelegate

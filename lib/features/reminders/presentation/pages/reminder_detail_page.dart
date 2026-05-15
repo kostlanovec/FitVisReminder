@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fit_vis_reminder/core/extensions/datetime_extensions.dart';
 import 'package:fit_vis_reminder/core/theme/app_theme.dart';
+import 'package:fit_vis_reminder/core/utils/app_router.dart';
+import 'package:fit_vis_reminder/features/reminders/data/services/sharing_service.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
 import 'package:fit_vis_reminder/features/reminders/presentation/providers/reminders_provider.dart';
 import 'package:fit_vis_reminder/l10n/app_localizations.dart';
@@ -23,13 +25,16 @@ class ReminderDetailPage extends ConsumerWidget {
         if (reminder == null) {
           return Scaffold(
             appBar: AppBar(),
-            body: const Center(child: Text('Připomínka nenalezena')),
+            body: Center(child: Text(AppLocalizations.of(context)!.reminderNotFound)),
           );
         }
         return _DetailContent(reminder: reminder);
       },
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))),
-      error: (e, _) => Scaffold(body: Center(child: Text('Chyba: $e'))),
+      error: (_, __) => Scaffold(
+        appBar: AppBar(),
+        body: const _DetailErrorState(),
+      ),
     );
   }
 }
@@ -42,6 +47,7 @@ class _DetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toLanguageTag();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isOverdue = reminder.isOverdue;
@@ -61,7 +67,6 @@ class _DetailContent extends ConsumerWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // ── App Bar ───────────────────────────────────────────────────
           SliverAppBar(
             pinned: true,
             expandedHeight: 220,
@@ -73,9 +78,14 @@ class _DetailContent extends ConsumerWidget {
             ),
             actions: [
               IconButton(
+                icon: const Icon(Icons.ios_share_rounded),
+                tooltip: l.buttonShare,
+                onPressed: () => SharingService().shareReminders([reminder]),
+              ),
+              IconButton(
                 icon: const Icon(Icons.edit_outlined),
                 tooltip: l.buttonEdit,
-                onPressed: () => context.push('/reminders/${reminder.id}/edit'),
+                onPressed: () => context.push(AppRoutes.reminderEditPath(reminder.id)),
               ),
               PopupMenuButton<String>(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -105,48 +115,47 @@ class _DetailContent extends ConsumerWidget {
             ],
             flexibleSpace: FlexibleSpaceBar(
               collapseMode: CollapseMode.pin,
-              background: _HeroHeader(reminder: reminder, urgencyColor: urgencyColor, isDark: isDark),
+              background: _HeroHeader(
+                reminder: reminder,
+                urgencyColor: urgencyColor,
+                isDark: isDark,
+                locale: locale,
+              ),
             ),
           ),
 
-          // ── Content ───────────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
 
-                // ── Quick actions ──────────────────────────────────────
-                _QuickActions(reminder: reminder, l: l),
+                _QuickActions(reminder: reminder, l: l, locale: locale),
 
                 const SizedBox(height: 28),
 
-                // ── Last completed ─────────────────────────────────────
                 _SectionHeader(title: l.reminderDetailLastCompleted),
                 const SizedBox(height: 10),
-                _LastCompletedCard(reminder: reminder, l: l, isDark: isDark),
+                _LastCompletedCard(reminder: reminder, l: l, isDark: isDark, locale: locale),
 
                 const SizedBox(height: 28),
 
-                // ── Notification schedule ──────────────────────────────
                 if (reminder.triggers.isNotEmpty) ...[
                   _SectionHeader(title: l.reminderDetailSectionSchedule),
                   const SizedBox(height: 10),
-                  _ScheduleCard(reminder: reminder, isDark: isDark),
+                  _ScheduleCard(reminder: reminder, isDark: isDark, locale: locale),
                   const SizedBox(height: 28),
                 ],
 
-                // ── Upcoming dates (recurring only) ────────────────────
                 if (reminder.recurrenceRule.isRecurring) ...[
                   _SectionHeader(title: l.reminderDetailSectionUpcoming),
                   const SizedBox(height: 10),
-                  _UpcomingDatesCard(reminder: reminder, isDark: isDark),
+                  _UpcomingDatesCard(reminder: reminder, isDark: isDark, locale: locale),
                   const SizedBox(height: 28),
                 ],
 
-                // ── Info card ──────────────────────────────────────────
                 _SectionHeader(title: l.reminderDetailSectionInfo),
                 const SizedBox(height: 10),
-                _InfoCard(reminder: reminder, l: l, isDark: isDark),
+                _InfoCard(reminder: reminder, l: l, isDark: isDark, locale: locale),
 
               ]),
             ),
@@ -176,14 +185,14 @@ class _DetailContent extends ConsumerWidget {
   }
 }
 
-// ── Hero header ────────────────────────────────────────────────────────────
 
 class _HeroHeader extends StatelessWidget {
-  const _HeroHeader({required this.reminder, required this.urgencyColor, required this.isDark});
+  const _HeroHeader({required this.reminder, required this.urgencyColor, required this.isDark, required this.locale});
 
   final Reminder reminder;
   final Color urgencyColor;
   final bool isDark;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
@@ -241,7 +250,7 @@ class _HeroHeader extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              _UrgencyBadge(reminder: reminder, color: urgencyColor),
+              _UrgencyBadge(reminder: reminder, color: urgencyColor, locale: locale),
             ],
           ),
         ),
@@ -251,26 +260,27 @@ class _HeroHeader extends StatelessWidget {
 }
 
 class _UrgencyBadge extends StatelessWidget {
-  const _UrgencyBadge({required this.reminder, required this.color});
+  const _UrgencyBadge({required this.reminder, required this.color, required this.locale});
 
   final Reminder reminder;
   final Color color;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
     final daysLeft = reminder.daysUntilDue;
     final String label;
     if (reminder.isOverdue) {
-      label = '${daysLeft.abs()}d po termínu';
+      label = AppLocalizations.of(context)!.reminderDetailOverdueCount(daysLeft.abs());
     } else if (reminder.isDueToday) {
-      label = 'Dnes';
+      label = AppLocalizations.of(context)!.reminderDetailDueToday;
     } else if (daysLeft == 1) {
-      label = 'Zítra';
+      label = AppLocalizations.of(context)!.reminderDetailDueTomorrow;
     } else {
-      label = 'Za ${daysLeft}d';
+      label = AppLocalizations.of(context)!.reminderDetailDueInDays(daysLeft);
     }
 
-    final dateStr = DateFormat('d. MMMM yyyy', 'cs').format(reminder.dueDate);
+    final dateStr = DateFormat('d. MMMM yyyy', locale).format(reminder.dueDate);
 
     return Wrap(
       spacing: 8,
@@ -324,13 +334,13 @@ class _Chip extends StatelessWidget {
   }
 }
 
-// ── Quick actions ──────────────────────────────────────────────────────────
 
 class _QuickActions extends ConsumerWidget {
-  const _QuickActions({required this.reminder, required this.l});
+  const _QuickActions({required this.reminder, required this.l, required this.locale});
 
   final Reminder reminder;
   final AppLocalizations l;
+  final String locale;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -340,7 +350,7 @@ class _QuickActions extends ConsumerWidget {
           flex: 3,
           child: FilledButton.icon(
             onPressed: () async {
-              await ref.read(reminderNotifierProvider.notifier).markDone(reminder);
+              await ref.read(reminderNotifierProvider.notifier).markDone(reminder, l);
               if (context.mounted) context.pop();
             },
             icon: const Icon(Icons.check_rounded, size: 18),
@@ -357,10 +367,10 @@ class _QuickActions extends ConsumerWidget {
           flex: 2,
           child: OutlinedButton.icon(
             onPressed: () async {
-              await ref.read(reminderNotifierProvider.notifier).snoozeReminder(reminder);
+              await ref.read(reminderNotifierProvider.notifier).snoozeReminder(reminder, l);
               if (context.mounted) {
                 final newDate = reminder.dueDate.add(const Duration(days: 7));
-                final formatted = DateFormat('d. M. yyyy', 'cs').format(newDate);
+                final formatted = DateFormat('d. M. yyyy', locale).format(newDate);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(l.reminderDetailSnoozed(formatted)),
@@ -384,7 +394,6 @@ class _QuickActions extends ConsumerWidget {
   }
 }
 
-// ── Section header ─────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.title});
@@ -400,14 +409,14 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ── Last completed card ────────────────────────────────────────────────────
 
 class _LastCompletedCard extends StatelessWidget {
-  const _LastCompletedCard({required this.reminder, required this.l, required this.isDark});
+  const _LastCompletedCard({required this.reminder, required this.l, required this.isDark, required this.locale});
 
   final Reminder reminder;
   final AppLocalizations l;
   final bool isDark;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
@@ -444,7 +453,7 @@ class _LastCompletedCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        DateFormat('d. MMMM yyyy', 'cs').format(completed),
+                        DateFormat('d. MMMM yyyy', locale).format(completed),
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                       ),
                       Text(
@@ -464,13 +473,13 @@ class _LastCompletedCard extends StatelessWidget {
   }
 }
 
-// ── Schedule card (notification triggers) ─────────────────────────────────
 
 class _ScheduleCard extends StatelessWidget {
-  const _ScheduleCard({required this.reminder, required this.isDark});
+  const _ScheduleCard({required this.reminder, required this.isDark, required this.locale});
 
   final Reminder reminder;
   final bool isDark;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
@@ -515,7 +524,7 @@ class _ScheduleCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      DateFormat('d. M. yyyy', 'cs').format(scheduledAt),
+                      DateFormat('d. M. yyyy', locale).format(scheduledAt),
                       style: TextStyle(
                         fontSize: 12,
                         color: isPast ? AppColors.textTertiary : AppColors.textSecondary,
@@ -544,13 +553,13 @@ class _ScheduleCard extends StatelessWidget {
   }
 }
 
-// ── Upcoming dates card ────────────────────────────────────────────────────
 
 class _UpcomingDatesCard extends StatelessWidget {
-  const _UpcomingDatesCard({required this.reminder, required this.isDark});
+  const _UpcomingDatesCard({required this.reminder, required this.isDark, required this.locale});
 
   final Reminder reminder;
   final bool isDark;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
@@ -609,7 +618,7 @@ class _UpcomingDatesCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        DateFormat('d. MMMM yyyy', 'cs').format(occ),
+                        DateFormat('d. MMMM yyyy', locale).format(occ),
                         style: TextStyle(
                           fontWeight: isFirst ? FontWeight.w600 : FontWeight.w400,
                         ),
@@ -640,26 +649,26 @@ class _UpcomingDatesCard extends StatelessWidget {
   }
 }
 
-// ── Info card ──────────────────────────────────────────────────────────────
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.reminder, required this.l, required this.isDark});
+  const _InfoCard({required this.reminder, required this.l, required this.isDark, required this.locale});
 
   final Reminder reminder;
   final AppLocalizations l;
   final bool isDark;
+  final String locale;
 
   @override
   Widget build(BuildContext context) {
     final cat = reminder.category;
     final rows = <(IconData, String, String)>[
-      (Icons.label_outline_rounded, 'Kategorie', '${cat.emoji} ${cat.label}'),
-      (Icons.repeat_rounded, 'Opakování', reminder.recurrenceRule.humanLabel),
+      (Icons.label_outline_rounded, l.reminderFormFieldCategory, '${cat.emoji} ${cat.label}'),
+      (Icons.repeat_rounded, l.reminderFormFieldRecurrence, reminder.recurrenceRule.humanLabel),
       if (reminder.description != null && reminder.description!.isNotEmpty)
-        (Icons.notes_rounded, 'Popis', reminder.description!),
+        (Icons.notes_rounded, l.reminderFormFieldDescription, reminder.description!),
       if (reminder.createdAt != null)
         (Icons.add_circle_outline_rounded, l.reminderDetailCreatedAt,
-            DateFormat('d. MMMM yyyy', 'cs').format(reminder.createdAt!)),
+            DateFormat('d. MMMM yyyy', locale).format(reminder.createdAt!)),
     ];
 
     return Container(
@@ -701,3 +710,35 @@ class _InfoCard extends StatelessWidget {
     ).animate().fadeIn(delay: 300.ms);
   }
 }
+
+class _DetailErrorState extends StatelessWidget {
+  const _DetailErrorState();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline_rounded, color: AppColors.accentRed, size: 36),
+            const SizedBox(height: 10),
+            Text(
+              l.errorTitle,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              l.errorSubtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

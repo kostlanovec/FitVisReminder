@@ -1,13 +1,14 @@
 {
   "@@locale": "en",
 
-  "appTitle": "LifeTrack",
+  "appTitle": "FitVis Reminder",
 
   "navDashboard": "Dashboard",
   "navReminders": "Reminders",
   "navSettings": "Settings",
+  "navTemplates": "Templates",
 
-  "onboardingWelcomeTitle": "Welcome to LifeTrack",
+  "onboardingWelcomeTitle": "Welcome to FitVis Reminder",
   "onboardingWelcomeSubtitle": "Your personal assistant for life maintenance.\nNever forget your MOT, dentist appointment or passport expiry.",
   "onboardingWelcomeHint": "We'll go through each category so you can pick what to track.",
   "onboardingFeatureNotifications": "Smart advance notifications",
@@ -117,6 +118,9 @@
   "settingsNotificationsPermission": "Notification permission",
   "settingsRescheduleAll": "Reschedule all",
   "settingsCancelAll": "Cancel all",
+  "settingsTestNotification": "Test notification",
+  "settingsTestNotificationDesc": "Send a trial notification",
+  "settingsTestNotificationSent": "Test notification sent",
   "settingsAbout": "About",
   "settingsVersion": "Version",
 
@@ -124,6 +128,7 @@
   "categoryCar": "Car",
   "categoryHealth": "Health",
   "categoryFinance": "Finance",
+  "categorySubscriptions": "Subscriptions",
   "categoryHome": "Home",
   "categoryDigital": "Digital",
   "categoryPets": "Pets",
@@ -136,6 +141,23 @@
   "buttonEdit": "Edit",
   "buttonClose": "Close",
   "buttonBack": "Back",
+  "onboardingFrequencyLabel": "Reminder frequency:",
+  "onboardingRecommended": "(recommended)",
+  "settingsNotifications": "Notifications",
+  "settingsNotificationsTest": "Test Notification",
+  "settingsNotificationsTestHint": "Click to send an immediate notification to verify functionality",
+  "reminderPriorityLabel": "Importance (Priority):",
+  "reminderPriorityNormal": "Normal",
+  "reminderPriorityHigh": "High (Critical)",
+  "reminderCustomRecurrence": "Custom recurrence...",
+  "reminderCustomNotification": "Custom notification...",
+  "reminderCustomDays": "Days",
+  "reminderCustomMonths": "Months",
+  "reminderCustomYears": "Years",
+  "reminderCustomLabel": "Custom",
+  "greetingMorning": "Good morning ☀️",
+  "greetingAfternoon": "Good afternoon 👋",
+  "greetingEvening": "Good evening 🌙",
 
   "reminderDetailSnooze": "Snooze 1 week",
   "reminderDetailSnoozed": "Snoozed to {date}",
@@ -166,5 +188,120 @@
   "@selectionDeleteConfirm": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "selectionDeleteHint": "This action cannot be undone."
+  "selectionDeleteHint": "This action cannot be undone.",
+
+  "settingsSectionSecurity": "Security",
+  "settingsAppLock": "App lock (PIN)",
+  "settingsAppLockEnabled": "Enabled, timeout {minutes} min",
+  "@settingsAppLockEnabled": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "settingsAppLockDisabled": "Disabled",
+  "settingsAppLockTimeout": "Auto-lock timeout",
+  "settingsAppLockTimeoutValue": "{minutes} minutes",
+  "@settingsAppLockTimeoutValue": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "settingsAppLockNow": "Lock now",
+  "settingsPinInvalid": "PIN is invalid or does not match.",
+  "settingsPinSet": "Set PIN",
+  "settingsPinLabel": "PIN (4-6 digits)",
+  "settingsPinConfirm": "Confirm PIN",
+  "appLockTitle": "App is locked",
+  "appLockSubtitle": "Enter your PIN to unlock.",
+  "appLockPinLabel": "PIN",
+  "appLockUnlock": "Unlock",
+  "appLockInvalidPin": "Invalid PIN",
+
+  "settingsSectionBackup": "Backup",
+  "settingsBackupExport": "Export backup",
+  "settingsBackupExportHint": "Saves a JSON file to app documents",
+  "settingsBackupImport": "Import backup (JSON)",
+  "settingsBackupImportHint": "Replaces current data",
+  "settingsBackupExportSuccess": "Backup saved: {path}",
+  "@settingsBackupExportSuccess": {
+    "placeholders": { "path": { "type": "String" } }
+  },
+  "settingsBackupImportConfirmTitle": "Replace current data?",
+  "settingsBackupImportConfirmBody": "Import will overwrite all current reminders. This action cannot be undone.",
+  "settingsBackupImportDialogTitle": "Import JSON backup",
+  "settingsBackupImportDialogHint": "Paste JSON backup content here...",
+  "settingsBackupImportSuccess": "Imported {count} reminders.",
+  "@settingsBackupImportSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsBackupImportError": "Import failed. Check JSON format.",
+  "backupExportWebError": "Export to file is not supported on web. Use JSON download instead.",
+
+  "templatesTitle": "Template Library",
+  "templatesSearchHint": "Search templates...",
+  "templatesEmpty": "No templates found",
+  "templatesAddSuccess": "Reminder '{title}' added",
+  "@templatesAddSuccess": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "dashboardStatusOverdue": "You have {count} tasks to handle",
+  "@dashboardStatusOverdue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "dashboardStatusAllGood": "Everything is in perfect order ✨",
+  "appLockForgotPin": "Forgot PIN?",
+  "filterHighPriority": "HIGH PRIORITY",
+  "remindersFilterNoResults": "No results",
+  "remindersFilterNoResultsHint": "Try another filter or search",
+  "errorTitle": "Something went wrong",
+  "errorSubtitle": "Please try again in a moment.",
+  "settingsSectionPerformance": "Performance & Notifications",
+  "settingsNotifHorizon": "Scheduling Horizon",
+  "settingsNotifHorizonValue": "{months} months",
+  "@settingsNotifHorizonValue": {
+    "placeholders": { "months": { "type": "int" } }
+  },
+  "settingsNotifLimit": "Max triggers per reminder",
+  "settingsNotifLimitOnlyNext": "Only next (optimized)",
+  "settingsNotifLimitValue": "{count} triggers",
+  "@settingsNotifLimitValue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsNotifLimitAll": "No limit",
+  "settingsBackupCloud": "Cloud Backup (Drive/iCloud)",
+  "notificationActionSnooze": "Snooze",
+  "notificationActionDone": "Done",
+  "notificationActionUnderstand": "I understand ✓",
+  "notificationBodyToday": "Today is the deadline: {title}",
+  "notificationBodyTomorrow": "Tomorrow is the deadline: {title}",
+  "notificationBodyInDays": "In {days} days is the deadline: {title}",
+  "@notificationBodyInDays": {
+    "placeholders": { "days": { "type": "int" }, "title": { "type": "String" } }
+  },
+  "notificationBodyRemind": "Reminder: {title} - {date}",
+  "@notificationBodyRemind": {
+    "placeholders": { "date": { "type": "String" }, "title": { "type": "String" } }
+  },
+  "backupShareSubject": "FitVis Reminder Backup",
+  "backupShareText": "My reminders backup from FitVis Reminder",
+  "notificationChannelReminders": "Reminders",
+  "notificationChannelRemindersDesc": "General life maintenance reminders",
+  "notificationChannelImportant": "Important Deadlines",
+  "notificationChannelImportantDesc": "Urgent notifications for upcoming deadlines",
+  "notificationChannelUpcoming": "Upcoming Events",
+  "notificationChannelUpcomingDesc": "Information about events in the following weeks",
+  "reminderDetailOverdueCount": "{days}d overdue",
+  "@reminderDetailOverdueCount": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "reminderDetailDueToday": "Today",
+  "reminderDetailDueTomorrow": "Tomorrow",
+  "reminderDetailDueInDays": "In {days}d",
+  "@reminderDetailDueInDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
+  "reminderNotFound": "Reminder not found",
+  "settingsAboutDesc": "Life maintenance system",
+  "reminderMarkDoneAction": "Mark as completed",
+  "priorityHigh": "HIGH PRIORITY",
+  "settingsCalendarSync": "Calendar Synchronization",
+  "settingsCalendarSyncHint": "Automatically add deadlines to system calendar",
+  "buttonShare": "Share",
+  "selectionShare": "Share ({count})"
 }

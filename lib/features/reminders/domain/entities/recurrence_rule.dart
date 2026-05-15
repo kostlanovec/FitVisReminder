@@ -1,13 +1,6 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
 
-enum RecurrenceType {
-  once,
-  daily,
-  weekly,
-  monthly,
-  yearly,
-  custom;
-
+enum RecurrenceType { once, daily, weekly, monthly, yearly, custom;
   String get label => switch (this) {
     RecurrenceType.once => 'Jednorázově',
     RecurrenceType.daily => 'Každý den',
@@ -53,15 +46,18 @@ class RecurrenceRule extends Equatable {
       RecurrenceType.daily => from.add(Duration(days: intervalDays ?? 1)),
       RecurrenceType.weekly => from.add(Duration(days: intervalDays ?? 7)),
       RecurrenceType.monthly => DateTime(
-          from.year, from.month + (intervalMonths ?? 1), from.day,
-          from.hour, from.minute),
+          from.year, from.month + (intervalMonths ?? 1), from.day, from.hour, from.minute),
       RecurrenceType.yearly => DateTime(
-          from.year + (intervalYears ?? 1), from.month, from.day,
-          from.hour, from.minute),
+          from.year + (intervalYears ?? 1), from.month, from.day, from.hour, from.minute),
       RecurrenceType.custom => intervalDays != null
           ? from.add(Duration(days: intervalDays!))
-          : DateTime(from.year, from.month + (intervalMonths ?? 1), from.day,
-              from.hour, from.minute),
+          : DateTime(
+              from.year,
+              from.month + (intervalMonths ?? 1),
+              from.day,
+              from.hour,
+              from.minute,
+            ),
     };
   }
 
@@ -73,8 +69,8 @@ class RecurrenceRule extends Equatable {
       RecurrenceType.monthly => 'Každý měsíc',
       RecurrenceType.yearly => 'Každý rok',
       RecurrenceType.custom => intervalDays != null
-          ? 'Každých ${intervalDays} dní'
-          : 'Každých ${intervalMonths} měsíců',
+          ? 'Každých $intervalDays dní'
+          : 'Každých $intervalMonths měsíců',
     };
   }
 

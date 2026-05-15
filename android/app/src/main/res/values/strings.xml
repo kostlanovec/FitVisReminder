@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FitVis Reminder</string>
+    <string name="widget_loading">Načítání...</string>
+    <string name="widget_no_reminders">Žádné nadcházející připomínky</string>
+    <string name="widget_today">Dnes!</string>
+    <string name="widget_tomorrow">Zítra</string>
+    <string name="widget_in_days">za %d dní</string>
+</resources>

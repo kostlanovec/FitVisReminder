@@ -64,14 +64,14 @@ List<BoxShadow> cardShadow(bool isDark) => isDark
       ]
     : [
         BoxShadow(
-          color: const Color(0xFF0F172A).withOpacity(0.06),
-          blurRadius: 12,
-          offset: const Offset(0, 2),
+          color: const Color(0xFF0F172A).withOpacity(0.04),
+          blurRadius: 20,
+          offset: const Offset(0, 4),
         ),
         BoxShadow(
-          color: const Color(0xFF0F172A).withOpacity(0.04),
-          blurRadius: 4,
-          offset: const Offset(0, 1),
+          color: const Color(0xFF0F172A).withOpacity(0.02),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
         ),
       ];
 
@@ -85,14 +85,14 @@ List<BoxShadow> elevatedShadow(bool isDark) => isDark
       ]
     : [
         BoxShadow(
-          color: AppColors.primary.withOpacity(0.15),
-          blurRadius: 20,
-          offset: const Offset(0, 6),
+          color: AppColors.primary.withOpacity(0.12),
+          blurRadius: 24,
+          offset: const Offset(0, 8),
         ),
         BoxShadow(
-          color: const Color(0xFF0F172A).withOpacity(0.05),
-          blurRadius: 6,
-          offset: const Offset(0, 2),
+          color: const Color(0xFF0F172A).withOpacity(0.04),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
         ),
       ];
 
@@ -260,37 +260,37 @@ abstract final class AppTheme {
     final color =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     return GoogleFonts.interTextTheme().copyWith(
-      displayLarge: GoogleFonts.inter(
+      displayLarge: GoogleFonts.outfit(
           fontSize: 57,
           fontWeight: FontWeight.w800,
           letterSpacing: -1.5,
           color: color),
-      displayMedium: GoogleFonts.inter(
+      displayMedium: GoogleFonts.outfit(
           fontSize: 45,
           fontWeight: FontWeight.w700,
           letterSpacing: -1.0,
           color: color),
-      displaySmall: GoogleFonts.inter(
+      displaySmall: GoogleFonts.outfit(
           fontSize: 36,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.5,
           color: color),
-      headlineLarge: GoogleFonts.inter(
+      headlineLarge: GoogleFonts.outfit(
           fontSize: 32,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.5,
           color: color),
-      headlineMedium: GoogleFonts.inter(
+      headlineMedium: GoogleFonts.outfit(
           fontSize: 28,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.3,
           color: color),
-      headlineSmall: GoogleFonts.inter(
+      headlineSmall: GoogleFonts.outfit(
           fontSize: 24,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.2,
           color: color),
-      titleLarge: GoogleFonts.inter(
+      titleLarge: GoogleFonts.outfit(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.2,

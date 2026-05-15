@@ -9,95 +9,106 @@ part of 'reminder_model.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetReminderModelCollection on Isar {
-  IsarCollection<ReminderModel> get reminderModels => this.collection();
+extension GetReminderDataCollection on Isar {
+  IsarCollection<ReminderData> get reminderDatas => this.collection();
 }
 
-const ReminderModelSchema = CollectionSchema(
-  name: r'ReminderModel',
-  id: -6553527084112746384,
+const ReminderDataSchema = CollectionSchema(
+  name: r'ReminderData',
+  id: -4308134324345697917,
   properties: {
-    r'categoryIndex': PropertySchema(
+    r'calendarEventId': PropertySchema(
       id: 0,
+      name: r'calendarEventId',
+      type: IsarType.string,
+    ),
+    r'categoryIndex': PropertySchema(
+      id: 1,
       name: r'categoryIndex',
       type: IsarType.long,
     ),
     r'createdAt': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'customIconCode': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'customIconCode',
       type: IsarType.long,
     ),
     r'description': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'description',
       type: IsarType.string,
     ),
     r'dueDate': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
     r'isActive': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isActive',
       type: IsarType.bool,
     ),
     r'lastCompletedAt': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'lastCompletedAt',
       type: IsarType.dateTime,
     ),
     r'recurrenceRuleJson': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'recurrenceRuleJson',
       type: IsarType.string,
     ),
     r'templateId': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'templateId',
       type: IsarType.string,
     ),
     r'title': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'title',
       type: IsarType.string,
     ),
     r'triggersJson': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'triggersJson',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
   },
-  estimateSize: _reminderModelEstimateSize,
-  serialize: _reminderModelSerialize,
-  deserialize: _reminderModelDeserialize,
-  deserializeProp: _reminderModelDeserializeProp,
+  estimateSize: _reminderDataEstimateSize,
+  serialize: _reminderDataSerialize,
+  deserialize: _reminderDataDeserialize,
+  deserializeProp: _reminderDataDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
   embeddedSchemas: {},
-  getId: _reminderModelGetId,
-  getLinks: _reminderModelGetLinks,
-  attach: _reminderModelAttach,
+  getId: _reminderDataGetId,
+  getLinks: _reminderDataGetLinks,
+  attach: _reminderDataAttach,
   version: '3.1.0+1',
 );
 
-int _reminderModelEstimateSize(
-  ReminderModel object,
+int _reminderDataEstimateSize(
+  ReminderData object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.calendarEventId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.description;
     if (value != null) {
@@ -116,51 +127,53 @@ int _reminderModelEstimateSize(
   return bytesCount;
 }
 
-void _reminderModelSerialize(
-  ReminderModel object,
+void _reminderDataSerialize(
+  ReminderData object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.categoryIndex);
-  writer.writeDateTime(offsets[1], object.createdAt);
-  writer.writeLong(offsets[2], object.customIconCode);
-  writer.writeString(offsets[3], object.description);
-  writer.writeDateTime(offsets[4], object.dueDate);
-  writer.writeBool(offsets[5], object.isActive);
-  writer.writeDateTime(offsets[6], object.lastCompletedAt);
-  writer.writeString(offsets[7], object.recurrenceRuleJson);
-  writer.writeString(offsets[8], object.templateId);
-  writer.writeString(offsets[9], object.title);
-  writer.writeString(offsets[10], object.triggersJson);
-  writer.writeDateTime(offsets[11], object.updatedAt);
+  writer.writeString(offsets[0], object.calendarEventId);
+  writer.writeLong(offsets[1], object.categoryIndex);
+  writer.writeDateTime(offsets[2], object.createdAt);
+  writer.writeLong(offsets[3], object.customIconCode);
+  writer.writeString(offsets[4], object.description);
+  writer.writeDateTime(offsets[5], object.dueDate);
+  writer.writeBool(offsets[6], object.isActive);
+  writer.writeDateTime(offsets[7], object.lastCompletedAt);
+  writer.writeString(offsets[8], object.recurrenceRuleJson);
+  writer.writeString(offsets[9], object.templateId);
+  writer.writeString(offsets[10], object.title);
+  writer.writeString(offsets[11], object.triggersJson);
+  writer.writeDateTime(offsets[12], object.updatedAt);
 }
 
-ReminderModel _reminderModelDeserialize(
+ReminderData _reminderDataDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = ReminderModel(
-    categoryIndex: reader.readLong(offsets[0]),
-    createdAt: reader.readDateTimeOrNull(offsets[1]),
-    customIconCode: reader.readLongOrNull(offsets[2]),
-    description: reader.readStringOrNull(offsets[3]),
-    dueDate: reader.readDateTime(offsets[4]),
-    isActive: reader.readBoolOrNull(offsets[5]) ?? true,
-    lastCompletedAt: reader.readDateTimeOrNull(offsets[6]),
-    recurrenceRuleJson: reader.readString(offsets[7]),
-    templateId: reader.readStringOrNull(offsets[8]),
-    title: reader.readString(offsets[9]),
-    triggersJson: reader.readString(offsets[10]),
-    updatedAt: reader.readDateTimeOrNull(offsets[11]),
+  final object = ReminderData(
+    calendarEventId: reader.readStringOrNull(offsets[0]),
+    categoryIndex: reader.readLong(offsets[1]),
+    createdAt: reader.readDateTimeOrNull(offsets[2]),
+    customIconCode: reader.readLongOrNull(offsets[3]),
+    description: reader.readStringOrNull(offsets[4]),
+    dueDate: reader.readDateTime(offsets[5]),
+    isActive: reader.readBoolOrNull(offsets[6]) ?? true,
+    lastCompletedAt: reader.readDateTimeOrNull(offsets[7]),
+    recurrenceRuleJson: reader.readString(offsets[8]),
+    templateId: reader.readStringOrNull(offsets[9]),
+    title: reader.readString(offsets[10]),
+    triggersJson: reader.readString(offsets[11]),
+    updatedAt: reader.readDateTimeOrNull(offsets[12]),
   );
   object.id = id;
   return object;
 }
 
-P _reminderModelDeserializeProp<P>(
+P _reminderDataDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -168,60 +181,61 @@ P _reminderModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 1:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readLongOrNull(offset)) as P;
-    case 3:
-      return (reader.readStringOrNull(offset)) as P;
-    case 4:
-      return (reader.readDateTime(offset)) as P;
-    case 5:
-      return (reader.readBoolOrNull(offset) ?? true) as P;
-    case 6:
       return (reader.readDateTimeOrNull(offset)) as P;
-    case 7:
-      return (reader.readString(offset)) as P;
-    case 8:
+    case 3:
+      return (reader.readLongOrNull(offset)) as P;
+    case 4:
       return (reader.readStringOrNull(offset)) as P;
-    case 9:
+    case 5:
+      return (reader.readDateTime(offset)) as P;
+    case 6:
+      return (reader.readBoolOrNull(offset) ?? true) as P;
+    case 7:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 8:
       return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
       return (reader.readString(offset)) as P;
     case 11:
+      return (reader.readString(offset)) as P;
+    case 12:
       return (reader.readDateTimeOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-Id _reminderModelGetId(ReminderModel object) {
+Id _reminderDataGetId(ReminderData object) {
   return object.id;
 }
 
-List<IsarLinkBase<dynamic>> _reminderModelGetLinks(ReminderModel object) {
+List<IsarLinkBase<dynamic>> _reminderDataGetLinks(ReminderData object) {
   return [];
 }
 
-void _reminderModelAttach(
-    IsarCollection<dynamic> col, Id id, ReminderModel object) {
+void _reminderDataAttach(
+    IsarCollection<dynamic> col, Id id, ReminderData object) {
   object.id = id;
 }
 
-extension ReminderModelQueryWhereSort
-    on QueryBuilder<ReminderModel, ReminderModel, QWhere> {
-  QueryBuilder<ReminderModel, ReminderModel, QAfterWhere> anyId() {
+extension ReminderDataQueryWhereSort
+    on QueryBuilder<ReminderData, ReminderData, QWhere> {
+  QueryBuilder<ReminderData, ReminderData, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension ReminderModelQueryWhere
-    on QueryBuilder<ReminderModel, ReminderModel, QWhereClause> {
-  QueryBuilder<ReminderModel, ReminderModel, QAfterWhereClause> idEqualTo(
-      Id id) {
+extension ReminderDataQueryWhere
+    on QueryBuilder<ReminderData, ReminderData, QWhereClause> {
+  QueryBuilder<ReminderData, ReminderData, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -230,7 +244,7 @@ extension ReminderModelQueryWhere
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterWhereClause> idNotEqualTo(
+  QueryBuilder<ReminderData, ReminderData, QAfterWhereClause> idNotEqualTo(
       Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
@@ -253,7 +267,7 @@ extension ReminderModelQueryWhere
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<ReminderData, ReminderData, QAfterWhereClause> idGreaterThan(
       Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
@@ -263,8 +277,7 @@ extension ReminderModelQueryWhere
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterWhereClause> idLessThan(
-      Id id,
+  QueryBuilder<ReminderData, ReminderData, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -273,7 +286,7 @@ extension ReminderModelQueryWhere
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterWhereClause> idBetween(
+  QueryBuilder<ReminderData, ReminderData, QAfterWhereClause> idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
@@ -290,9 +303,163 @@ extension ReminderModelQueryWhere
   }
 }
 
-extension ReminderModelQueryFilter
-    on QueryBuilder<ReminderModel, ReminderModel, QFilterCondition> {
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+extension ReminderDataQueryFilter
+    on QueryBuilder<ReminderData, ReminderData, QFilterCondition> {
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'calendarEventId',
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'calendarEventId',
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'calendarEventId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'calendarEventId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'calendarEventId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'calendarEventId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'calendarEventId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'calendarEventId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'calendarEventId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'calendarEventId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'calendarEventId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
+      calendarEventIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'calendarEventId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       categoryIndexEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -302,7 +469,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       categoryIndexGreaterThan(
     int value, {
     bool include = false,
@@ -316,7 +483,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       categoryIndexLessThan(
     int value, {
     bool include = false,
@@ -330,7 +497,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       categoryIndexBetween(
     int lower,
     int upper, {
@@ -348,7 +515,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -357,7 +524,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       createdAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -366,7 +533,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       createdAtEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -376,7 +543,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       createdAtGreaterThan(
     DateTime? value, {
     bool include = false,
@@ -390,7 +557,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       createdAtLessThan(
     DateTime? value, {
     bool include = false,
@@ -404,7 +571,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       createdAtBetween(
     DateTime? lower,
     DateTime? upper, {
@@ -422,7 +589,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       customIconCodeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -431,7 +598,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       customIconCodeIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -440,7 +607,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       customIconCodeEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -450,7 +617,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       customIconCodeGreaterThan(
     int? value, {
     bool include = false,
@@ -464,7 +631,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       customIconCodeLessThan(
     int? value, {
     bool include = false,
@@ -478,7 +645,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       customIconCodeBetween(
     int? lower,
     int? upper, {
@@ -496,7 +663,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -505,7 +672,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -514,7 +681,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -528,7 +695,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionGreaterThan(
     String? value, {
     bool include = false,
@@ -544,7 +711,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionLessThan(
     String? value, {
     bool include = false,
@@ -560,7 +727,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionBetween(
     String? lower,
     String? upper, {
@@ -580,7 +747,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -594,7 +761,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -608,7 +775,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -619,7 +786,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -630,7 +797,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -640,7 +807,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       descriptionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -650,7 +817,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       dueDateEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -660,7 +827,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       dueDateGreaterThan(
     DateTime value, {
     bool include = false,
@@ -674,7 +841,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       dueDateLessThan(
     DateTime value, {
     bool include = false,
@@ -688,7 +855,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       dueDateBetween(
     DateTime lower,
     DateTime upper, {
@@ -706,7 +873,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition> idEqualTo(
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -716,8 +883,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
-      idGreaterThan(
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> idGreaterThan(
     Id value, {
     bool include = false,
   }) {
@@ -730,7 +896,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition> idLessThan(
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> idLessThan(
     Id value, {
     bool include = false,
   }) {
@@ -743,7 +909,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition> idBetween(
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
@@ -760,7 +926,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       isActiveEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -770,7 +936,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       lastCompletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -779,7 +945,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       lastCompletedAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -788,7 +954,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       lastCompletedAtEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -798,7 +964,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       lastCompletedAtGreaterThan(
     DateTime? value, {
     bool include = false,
@@ -812,7 +978,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       lastCompletedAtLessThan(
     DateTime? value, {
     bool include = false,
@@ -826,7 +992,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       lastCompletedAtBetween(
     DateTime? lower,
     DateTime? upper, {
@@ -844,7 +1010,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -858,7 +1024,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonGreaterThan(
     String value, {
     bool include = false,
@@ -874,7 +1040,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonLessThan(
     String value, {
     bool include = false,
@@ -890,7 +1056,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonBetween(
     String lower,
     String upper, {
@@ -910,7 +1076,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -924,7 +1090,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -938,7 +1104,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -949,7 +1115,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -960,7 +1126,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -970,7 +1136,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       recurrenceRuleJsonIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -980,7 +1146,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -989,7 +1155,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -998,7 +1164,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1012,7 +1178,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdGreaterThan(
     String? value, {
     bool include = false,
@@ -1028,7 +1194,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdLessThan(
     String? value, {
     bool include = false,
@@ -1044,7 +1210,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdBetween(
     String? lower,
     String? upper, {
@@ -1064,7 +1230,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1078,7 +1244,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1092,7 +1258,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -1103,7 +1269,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -1114,7 +1280,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1124,7 +1290,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       templateIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1134,8 +1300,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
-      titleEqualTo(
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> titleEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1148,7 +1313,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       titleGreaterThan(
     String value, {
     bool include = false,
@@ -1164,8 +1329,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
-      titleLessThan(
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> titleLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1180,8 +1344,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
-      titleBetween(
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> titleBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1200,7 +1363,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       titleStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1214,8 +1377,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
-      titleEndsWith(
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> titleEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1228,8 +1390,9 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
-      titleContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> titleContains(
+      String value,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'title',
@@ -1239,8 +1402,9 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
-      titleMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition> titleMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'title',
@@ -1250,7 +1414,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       titleIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1260,7 +1424,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       titleIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1270,7 +1434,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1284,7 +1448,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonGreaterThan(
     String value, {
     bool include = false,
@@ -1300,7 +1464,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonLessThan(
     String value, {
     bool include = false,
@@ -1316,7 +1480,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonBetween(
     String lower,
     String upper, {
@@ -1336,7 +1500,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1350,7 +1514,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1364,7 +1528,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -1375,7 +1539,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -1386,7 +1550,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1396,7 +1560,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       triggersJsonIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1406,7 +1570,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1415,7 +1579,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       updatedAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -1424,7 +1588,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       updatedAtEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1434,7 +1598,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       updatedAtGreaterThan(
     DateTime? value, {
     bool include = false,
@@ -1448,7 +1612,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       updatedAtLessThan(
     DateTime? value, {
     bool include = false,
@@ -1462,7 +1626,7 @@ extension ReminderModelQueryFilter
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterFilterCondition>
+  QueryBuilder<ReminderData, ReminderData, QAfterFilterCondition>
       updatedAtBetween(
     DateTime? lower,
     DateTime? upper, {
@@ -1481,397 +1645,423 @@ extension ReminderModelQueryFilter
   }
 }
 
-extension ReminderModelQueryObject
-    on QueryBuilder<ReminderModel, ReminderModel, QFilterCondition> {}
+extension ReminderDataQueryObject
+    on QueryBuilder<ReminderData, ReminderData, QFilterCondition> {}
 
-extension ReminderModelQueryLinks
-    on QueryBuilder<ReminderModel, ReminderModel, QFilterCondition> {}
+extension ReminderDataQueryLinks
+    on QueryBuilder<ReminderData, ReminderData, QFilterCondition> {}
 
-extension ReminderModelQuerySortBy
-    on QueryBuilder<ReminderModel, ReminderModel, QSortBy> {
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      sortByCategoryIndex() {
+extension ReminderDataQuerySortBy
+    on QueryBuilder<ReminderData, ReminderData, QSortBy> {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
+      sortByCalendarEventId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'calendarEventId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
+      sortByCalendarEventIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'calendarEventId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByCategoryIndex() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'categoryIndex', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByCategoryIndexDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'categoryIndex', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByCreatedAt() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      sortByCreatedAtDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByCustomIconCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'customIconCode', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByCustomIconCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'customIconCode', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByDescription() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByDescriptionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByDueDate() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByDueDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dueDate', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByDueDateDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByDueDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dueDate', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByIsActive() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByIsActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isActive', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      sortByIsActiveDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByIsActiveDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isActive', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByLastCompletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastCompletedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByLastCompletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastCompletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByRecurrenceRuleJson() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'recurrenceRuleJson', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByRecurrenceRuleJsonDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'recurrenceRuleJson', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByTemplateId() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByTemplateId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'templateId', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByTemplateIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'templateId', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByTitle() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByTitleDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      sortByTriggersJson() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByTriggersJson() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'triggersJson', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       sortByTriggersJsonDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'triggersJson', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> sortByUpdatedAt() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      sortByUpdatedAtDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> sortByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
   }
 }
 
-extension ReminderModelQuerySortThenBy
-    on QueryBuilder<ReminderModel, ReminderModel, QSortThenBy> {
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      thenByCategoryIndex() {
+extension ReminderDataQuerySortThenBy
+    on QueryBuilder<ReminderData, ReminderData, QSortThenBy> {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
+      thenByCalendarEventId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'calendarEventId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
+      thenByCalendarEventIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'calendarEventId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByCategoryIndex() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'categoryIndex', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByCategoryIndexDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'categoryIndex', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByCreatedAt() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      thenByCreatedAtDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByCustomIconCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'customIconCode', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByCustomIconCodeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'customIconCode', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByDescription() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByDescription() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByDescriptionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'description', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByDueDate() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByDueDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dueDate', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByDueDateDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByDueDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dueDate', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenById() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByIsActive() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByIsActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isActive', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      thenByIsActiveDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByIsActiveDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isActive', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByLastCompletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastCompletedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByLastCompletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastCompletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByRecurrenceRuleJson() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'recurrenceRuleJson', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByRecurrenceRuleJsonDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'recurrenceRuleJson', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByTemplateId() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByTemplateId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'templateId', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByTemplateIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'templateId', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByTitle() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByTitleDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      thenByTriggersJson() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByTriggersJson() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'triggersJson', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy>
       thenByTriggersJsonDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'triggersJson', Sort.desc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy> thenByUpdatedAt() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QAfterSortBy>
-      thenByUpdatedAtDesc() {
+  QueryBuilder<ReminderData, ReminderData, QAfterSortBy> thenByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
   }
 }
 
-extension ReminderModelQueryWhereDistinct
-    on QueryBuilder<ReminderModel, ReminderModel, QDistinct> {
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct>
+extension ReminderDataQueryWhereDistinct
+    on QueryBuilder<ReminderData, ReminderData, QDistinct> {
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByCalendarEventId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'calendarEventId',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ReminderData, ReminderData, QDistinct>
       distinctByCategoryIndex() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'categoryIndex');
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct> distinctByCreatedAt() {
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct>
+  QueryBuilder<ReminderData, ReminderData, QDistinct>
       distinctByCustomIconCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'customIconCode');
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct> distinctByDescription(
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByDescription(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'description', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct> distinctByDueDate() {
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByDueDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'dueDate');
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct> distinctByIsActive() {
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByIsActive() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isActive');
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct>
+  QueryBuilder<ReminderData, ReminderData, QDistinct>
       distinctByLastCompletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastCompletedAt');
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct>
+  QueryBuilder<ReminderData, ReminderData, QDistinct>
       distinctByRecurrenceRuleJson({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'recurrenceRuleJson',
@@ -1879,111 +2069,118 @@ extension ReminderModelQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct> distinctByTemplateId(
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByTemplateId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'templateId', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct> distinctByTitle(
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct> distinctByTriggersJson(
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByTriggersJson(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'triggersJson', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<ReminderModel, ReminderModel, QDistinct> distinctByUpdatedAt() {
+  QueryBuilder<ReminderData, ReminderData, QDistinct> distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
     });
   }
 }
 
-extension ReminderModelQueryProperty
-    on QueryBuilder<ReminderModel, ReminderModel, QQueryProperty> {
-  QueryBuilder<ReminderModel, int, QQueryOperations> idProperty() {
+extension ReminderDataQueryProperty
+    on QueryBuilder<ReminderData, ReminderData, QQueryProperty> {
+  QueryBuilder<ReminderData, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<ReminderModel, int, QQueryOperations> categoryIndexProperty() {
+  QueryBuilder<ReminderData, String?, QQueryOperations>
+      calendarEventIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'calendarEventId');
+    });
+  }
+
+  QueryBuilder<ReminderData, int, QQueryOperations> categoryIndexProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'categoryIndex');
     });
   }
 
-  QueryBuilder<ReminderModel, DateTime?, QQueryOperations> createdAtProperty() {
+  QueryBuilder<ReminderData, DateTime?, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
     });
   }
 
-  QueryBuilder<ReminderModel, int?, QQueryOperations> customIconCodeProperty() {
+  QueryBuilder<ReminderData, int?, QQueryOperations> customIconCodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'customIconCode');
     });
   }
 
-  QueryBuilder<ReminderModel, String?, QQueryOperations> descriptionProperty() {
+  QueryBuilder<ReminderData, String?, QQueryOperations> descriptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'description');
     });
   }
 
-  QueryBuilder<ReminderModel, DateTime, QQueryOperations> dueDateProperty() {
+  QueryBuilder<ReminderData, DateTime, QQueryOperations> dueDateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'dueDate');
     });
   }
 
-  QueryBuilder<ReminderModel, bool, QQueryOperations> isActiveProperty() {
+  QueryBuilder<ReminderData, bool, QQueryOperations> isActiveProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isActive');
     });
   }
 
-  QueryBuilder<ReminderModel, DateTime?, QQueryOperations>
+  QueryBuilder<ReminderData, DateTime?, QQueryOperations>
       lastCompletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastCompletedAt');
     });
   }
 
-  QueryBuilder<ReminderModel, String, QQueryOperations>
+  QueryBuilder<ReminderData, String, QQueryOperations>
       recurrenceRuleJsonProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'recurrenceRuleJson');
     });
   }
 
-  QueryBuilder<ReminderModel, String?, QQueryOperations> templateIdProperty() {
+  QueryBuilder<ReminderData, String?, QQueryOperations> templateIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'templateId');
     });
   }
 
-  QueryBuilder<ReminderModel, String, QQueryOperations> titleProperty() {
+  QueryBuilder<ReminderData, String, QQueryOperations> titleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'title');
     });
   }
 
-  QueryBuilder<ReminderModel, String, QQueryOperations> triggersJsonProperty() {
+  QueryBuilder<ReminderData, String, QQueryOperations> triggersJsonProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'triggersJson');
     });
   }
 
-  QueryBuilder<ReminderModel, DateTime?, QQueryOperations> updatedAtProperty() {
+  QueryBuilder<ReminderData, DateTime?, QQueryOperations> updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'updatedAt');
     });
