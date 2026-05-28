@@ -13,26 +13,36 @@ class MockReminderRepository implements ReminderRepository {
 
   @override
   Stream<List<Reminder>> watchAll() {
-    _notify();
+    // Delay the first notification by one microtask so that
+    // Riverpod's StreamProvider has time to subscribe before we emit.
+    Future.microtask(_notify);
     return _controller.stream;
   }
 
   @override
   Stream<List<Reminder>> watchByCategory(ReminderCategory category) {
-    return _controller.stream.map((list) => list.where((r) => r.category == category).toList());
+    Future.microtask(_notify);
+    return _controller.stream.map(
+      (list) => list.where((r) => r.category == category).toList(),
+    );
   }
 
   @override
   Stream<List<Reminder>> watchDueSoon({int withinDays = 30}) {
-    final now = DateTime.now();
-    final limit = now.add(Duration(days: withinDays));
-    return _controller.stream.map((list) => list.where((r) => r.dueDate.isBefore(limit)).toList());
+    Future.microtask(_notify);
+    final limit = DateTime.now().add(Duration(days: withinDays));
+    return _controller.stream.map(
+      (list) => list.where((r) => r.dueDate.isBefore(limit)).toList(),
+    );
   }
 
   @override
   Stream<List<Reminder>> watchOverdue() {
+    Future.microtask(_notify);
     final now = DateTime.now();
-    return _controller.stream.map((list) => list.where((r) => r.dueDate.isBefore(now)).toList());
+    return _controller.stream.map(
+      (list) => list.where((r) => r.dueDate.isBefore(now)).toList(),
+    );
   }
 
   @override

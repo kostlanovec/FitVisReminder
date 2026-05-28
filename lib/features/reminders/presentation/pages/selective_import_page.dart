@@ -32,14 +32,14 @@ class _SelectiveImportPageState extends State<SelectiveImportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.settingsBackupImport), // Reuse or add new key
+        title: Text(l.importSelectTitle),
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Vyberte připomínky, které chcete přidat do svého seznamu:',
+              l.importSelectRemindersHint,
               style: theme.textTheme.titleMedium,
             ),
           ),
@@ -93,7 +93,7 @@ class _SelectiveImportPageState extends State<SelectiveImportPage> {
                 Expanded(
                   child: FilledButton(
                     onPressed: _selectedIndices.isEmpty ? null : () => _onImport(context),
-                    child: Text('Importovat (${_selectedIndices.length})'),
+                    child: Text(l.importAction(_selectedIndices.length)),
                   ),
                 ),
               ],
@@ -117,7 +117,7 @@ class _SelectiveImportPageState extends State<SelectiveImportPage> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Úspěšně importováno $imported připomínek')),
+        SnackBar(content: Text(l.importSuccess(imported))),
       );
       context.go('/');
     }

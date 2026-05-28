@@ -90,6 +90,19 @@ class _ReminderFormPageState extends ConsumerState<ReminderFormPage> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final l = AppLocalizations.of(context)!;
+    if (_triggers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l.reminderFormTriggersRequired),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     final reminder = Reminder(
@@ -107,7 +120,6 @@ class _ReminderFormPageState extends ConsumerState<ReminderFormPage> {
       updatedAt: DateTime.now(),
     );
 
-    final l = AppLocalizations.of(context)!;
     await ref.read(reminderNotifierProvider.notifier).saveReminder(reminder, l);
 
     setState(() => _isLoading = false);
@@ -142,7 +154,7 @@ class _ReminderFormPageState extends ConsumerState<ReminderFormPage> {
         key: _formKey,
         child: ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
           children: [
             if (!_isEditing) ...[
               _SectionLabel(label: l.reminderFormTemplateSection),
@@ -269,10 +281,10 @@ class _FormCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(
           color: isDark ? AppColors.borderDark : AppColors.borderLight.withOpacity(0.5),
         ),
@@ -291,13 +303,14 @@ class _CategoryPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: ReminderCategory.values.map((cat) {
         final isSelected = selected == cat;
         return ChoiceChip(
-          label: Text('${cat.emoji} ${cat.label}'),
+          label: Text('${cat.emoji} ${cat.localizedLabel(l)}'),
           selected: isSelected,
           onSelected: (_) => onSelect(cat),
           selectedColor: cat.color.withOpacity(0.12),
@@ -334,111 +347,172 @@ class _DatePickerButton extends StatelessWidget {
       icon: const Icon(Icons.calendar_today_rounded, size: 18),
       label: Text(DateFormat('d. MMMM yyyy', locale).format(date)),
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
         alignment: Alignment.centerLeft,
         minimumSize: const Size(double.infinity, 52),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
     );
   }
 }
 
-class _RecurrencePicker extends StatelessWidget {
+class _RecurrencePicker extends StatefulWidget {
   const _RecurrencePicker({required this.selected, required this.onSelect});
 
   final RecurrenceRule selected;
   final void Function(RecurrenceRule) onSelect;
 
   @override
+  State<_RecurrencePicker> createState() => _RecurrencePickerState();
+}
+
+class _RecurrencePickerState extends State<_RecurrencePicker> {
+  late final TextEditingController _freqController;
+  RecurrenceUnit _customUnit = RecurrenceUnit.days;
+
+  @override
+  void initState() {
+    super.initState();
+    final isCustom = _isCustomSelected();
+    _freqController = TextEditingController(
+      text: isCustom ? widget.selected.frequency.toString() : '1',
+    );
+    if (isCustom) _customUnit = widget.selected.unit;
+  }
+
+  @override
+  void dispose() {
+    _freqController.dispose();
+    super.dispose();
+  }
+
+  bool _isCustomSelected() {
+    const presetTypes = [
+      RecurrenceType.once,
+      RecurrenceType.daily,
+      RecurrenceType.weekly,
+      RecurrenceType.monthly,
+      RecurrenceType.yearly,
+    ];
+    return !presetTypes.contains(widget.selected.type);
+  }
+
+  void _applyCustom() {
+    final freq = int.tryParse(_freqController.text) ?? 1;
+    widget.onSelect(RecurrenceRule.custom(frequency: freq, unit: _customUnit));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isCustom = _isCustomSelected();
+
     final presets = [
       (label: l.recurrenceOnce, rule: const RecurrenceRule.once()),
       (label: l.recurrenceWeekly, rule: const RecurrenceRule.weekly()),
       (label: l.recurrenceMonthly, rule: const RecurrenceRule.monthly()),
       (label: l.recurrenceYearly, rule: const RecurrenceRule.yearly()),
     ];
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+
+    return Column(
       children: [
         ...presets.map((preset) {
-          final isSelected = selected.type == preset.rule.type &&
-              selected.frequency == preset.rule.frequency &&
-              selected.unit == preset.rule.unit;
-          return ChoiceChip(
-            label: Text(preset.label),
-            selected: isSelected,
-            onSelected: (_) => onSelect(preset.rule),
-            selectedColor: AppColors.primary.withOpacity(0.12),
-            labelStyle: TextStyle(
-              fontSize: 13,
-              color: isSelected ? AppColors.primary : null,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            ),
+          final isSelected = widget.selected.type == preset.rule.type;
+          return _RecurrenceRow(
+            label: preset.label,
+            isSelected: isSelected,
+            isDark: isDark,
+            onTap: () => widget.onSelect(preset.rule),
           );
         }),
-        ChoiceChip(
-          label: Text(l.reminderCustomLabel),
-          selected: !presets.any((p) =>
-              p.rule.type == selected.type &&
-              p.rule.frequency == selected.frequency &&
-              p.rule.unit == selected.unit),
-          onSelected: (_) => _showCustomRecurrenceDialog(context, l),
-          selectedColor: AppColors.primary.withOpacity(0.12),
-          labelStyle: const TextStyle(fontSize: 13),
+        _RecurrenceRow(
+          label: l.reminderCustomLabel,
+          isSelected: isCustom,
+          isDark: isDark,
+          onTap: () {
+            if (!isCustom) _applyCustom();
+          },
         ),
+        if (isCustom) ...[
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _freqController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: l.onboardingFrequencyLabel,
+                      isDense: true,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                    ),
+                    onChanged: (_) => _applyCustom(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                DropdownButton<RecurrenceUnit>(
+                  value: _customUnit,
+                  underline: const SizedBox(),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  items: [
+                    DropdownMenuItem(value: RecurrenceUnit.days, child: Text(l.reminderCustomDays)),
+                    DropdownMenuItem(value: RecurrenceUnit.weeks, child: Text(l.reminderCustomWeeks)),
+                    DropdownMenuItem(value: RecurrenceUnit.months, child: Text(l.reminderCustomMonths)),
+                    DropdownMenuItem(value: RecurrenceUnit.years, child: Text(l.reminderCustomYears)),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _customUnit = v);
+                      _applyCustom();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
+}
 
-  void _showCustomRecurrenceDialog(BuildContext context, AppLocalizations l) {
-    int frequency = selected.frequency;
-    RecurrenceUnit unit = selected.unit;
+class _RecurrenceRow extends StatelessWidget {
+  const _RecurrenceRow({
+    required this.label,
+    required this.isSelected,
+    required this.isDark,
+    required this.onTap,
+  });
 
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(l.reminderCustomRecurrence),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: l.onboardingFrequencyLabel),
-                      onChanged: (v) => frequency = int.tryParse(v) ?? 1,
-                      controller: TextEditingController(text: frequency.toString()),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  DropdownButton<RecurrenceUnit>(
-                    value: unit,
-                    items: [
-                      DropdownMenuItem(value: RecurrenceUnit.days, child: Text(l.reminderCustomDays)),
-                      DropdownMenuItem(value: RecurrenceUnit.months, child: Text(l.reminderCustomMonths)),
-                      DropdownMenuItem(value: RecurrenceUnit.years, child: Text(l.reminderCustomYears)),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) setDialogState(() => unit = v);
-                    },
-                  ),
-                ],
+  final String label;
+  final bool isSelected;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? AppColors.primary : null,
+                ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l.buttonCancel)),
-            FilledButton(
-              onPressed: () {
-                onSelect(RecurrenceRule.custom(frequency: frequency, unit: unit));
-                Navigator.pop(ctx);
-              },
-              child: Text(l.buttonAdd),
             ),
+            if (isSelected)
+              const Icon(Icons.check_rounded, size: 20, color: AppColors.primary),
           ],
         ),
       ),
@@ -474,7 +548,7 @@ class _TriggersPicker extends StatelessWidget {
             dense: true,
             contentPadding: EdgeInsets.zero,
             activeColor: AppColors.primary,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
             onChanged: (_) {
               final updated = List<NotificationTrigger>.from(selected);
               if (isSelected) {
@@ -489,7 +563,7 @@ class _TriggersPicker extends StatelessWidget {
         }),
         ...customTriggers.map((t) => CheckboxListTile(
           value: true,
-          title: Text('${t.offsetDays} dní předem (Vlastní)', style: const TextStyle(fontSize: 14)),
+          title: Text(l.reminderTriggerCustomDays(t.offsetDays), style: const TextStyle(fontSize: 14)),
           dense: true,
           contentPadding: EdgeInsets.zero,
           activeColor: AppColors.primary,
@@ -505,7 +579,7 @@ class _TriggersPicker extends StatelessWidget {
           icon: const Icon(Icons.add_rounded, size: 18),
           label: Text(l.reminderCustomLabel),
           style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
             minimumSize: const Size(120, 36),
           ),
         ),
@@ -529,7 +603,7 @@ class _TriggersPicker extends StatelessWidget {
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l.buttonCancel)),
           FilledButton(
             onPressed: () {
-              final trigger = NotificationTrigger(offsetDays: days, label: '$days dní předem');
+              final trigger = NotificationTrigger(offsetDays: days, label: l.reminderTriggerCustomDays(days));
               final updated = List<NotificationTrigger>.from(selected);
               if (!updated.any((t) => t.offsetDays == days)) {
                 updated.add(trigger);
@@ -563,11 +637,11 @@ class _TemplatePicker extends ConsumerWidget {
       children: [
         if (selectedTemplate != null)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
             decoration: BoxDecoration(
               color: selectedTemplate!.category.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
               border: Border.all(color: selectedTemplate!.category.color.withOpacity(0.3)),
             ),
             child: Row(
@@ -618,7 +692,7 @@ class _TemplatePicker extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.75,
@@ -654,7 +728,7 @@ class _TemplatePicker extends ConsumerWidget {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                           child: Text(
-                            '${cat.emoji} ${cat.label}',
+                            '${cat.emoji} ${cat.localizedLabel(l)}',
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -665,7 +739,7 @@ class _TemplatePicker extends ConsumerWidget {
                         ...catTemplates.map((tpl) => ListTile(
                           leading: Text(tpl.icon, style: const TextStyle(fontSize: 22)),
                           title: Text(tpl.title),
-                          subtitle: Text(tpl.defaultRecurrence.humanLabel,
+                          subtitle: Text(tpl.defaultRecurrence.humanLabelLocalized(l),
                               style: const TextStyle(fontSize: 12)),
                           onTap: () => Navigator.pop(context, tpl),
                         )),

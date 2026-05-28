@@ -78,6 +78,8 @@
   "reminderFormFieldDueDate": "Termín",
   "reminderFormFieldRecurrence": "Opakování",
   "reminderFormFieldNotifications": "Upozornění",
+  "reminderFormBasicInfo": "Základní informace",
+  "reminderFormRecurrenceSection": "Opakování",
   "reminderFormTemplateSection": "Šablona (volitelné)",
   "reminderFormAllTemplates": "Všechny šablony",
   "reminderFormPickTemplate": "Vyberte šablonu",
@@ -117,6 +119,17 @@
   "settingsNotifications": "Notifikace",
   "settingsNotificationsPermission": "Povolení notifikací",
   "settingsRescheduleAll": "Přeplánovat vše",
+  "settingsRescheduleResult": "Naplánováno {count} upozornění",
+  "@settingsRescheduleResult": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsNotificationTime": "Čas notifikací",
+  "settingsNotificationTimeValue": "Notifikace v {hour}:00",
+  "@settingsNotificationTimeValue": {
+    "placeholders": {
+      "hour": { "type": "int" }
+    }
+  },
   "settingsCancelAll": "Zrušit vše",
   "settingsTestNotification": "Testovací notifikace",
   "settingsTestNotificationDesc": "Odeslat zkušební oznámení",
@@ -154,12 +167,19 @@
   "reminderCustomDays": "Počet dní",
   "reminderCustomMonths": "Počet měsíců",
   "reminderCustomYears": "Počet let",
+  "reminderCustomWeeks": "Týdny",
+  "reminderTriggerCustomDays": "{days} dní předem (Vlastní)",
+  "@reminderTriggerCustomDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
   "reminderCustomLabel": "Vlastní",
   "greetingMorning": "Dobré ráno ☀️",
   "greetingAfternoon": "Dobrý den 👋",
   "greetingEvening": "Dobrý večer 🌙",
 
   "reminderDetailSnooze": "Odložit o týden",
+  "reminderSnoozeMonth": "Odložit o měsíc",
+  "reminderListContextSelect": "Vybrat",
   "reminderDetailSnoozed": "Odloženo na {date}",
   "@reminderDetailSnoozed": {
     "placeholders": { "date": { "type": "String" } }
@@ -303,5 +323,87 @@
   "settingsCalendarSync": "Synchronizace s kalendářem",
   "settingsCalendarSyncHint": "Automaticky přidávat termíny do systémového kalendáře",
   "buttonShare": "Sdílet",
-  "selectionShare": "Sdílet ({count})"
+  "selectionShare": "Sdílet ({count})",
+  "dashboardSectionUpcoming": "Nadcházející",
+  "dashboardNothingUpcoming": "Nic nadcházejícího",
+  "reminderFormTriggersSection": "Upozornění",
+  "reminderFormTriggersRequired": "Vyberte alespoň jedno upozornění",
+  "settingsBatteryOptimization": "Běh na pozadí (baterie)",
+  "settingsBatteryOptimizationDisabled": "Optimalizováno (může zpozdit připomínky)",
+  "settingsBatteryOptimizationEnabled": "Bez omezení (spolehlivý běh)",
+  "settingsBatteryAlreadyAllowed": "Aplikace má již povolen spolehlivý běh na pozadí.",
+  "settingsPreciseAlarms": "Přesné budíky",
+  "settingsPreciseAlarmsEnabled": "Povoleno (přesné doručování)",
+  "settingsPreciseAlarmsDisabled": "Nepovoleno (upozornění se mohou zpozdit)",
+  "settingsPreciseAlarmsDialogTitle": "Vyžadovány přesné budíky",
+  "settingsPreciseAlarmsDialogBody": "Tato aplikace potřebuje povolení pro přesné budíky, aby mohla doručovat notifikace přesně na čas. Klikněte na Uložit a povolte je v nastavení systému.",
+
+  "dashboardSectionOverdue": "Prošlé",
+  "dashboardSectionThisWeek": "Tento týden",
+  "dashboardSectionThisMonth": "Tento měsíc",
+  "dashboardCalmTitle": "Vše v pořádku",
+  "dashboardCalmHint": "V příštím měsíci žádné blížící se termíny.",
+  "dashboardCalmNext": "Příště",
+  "dashboardShowAll": "Zobrazit vše ({count})",
+  "@dashboardShowAll": { "placeholders": { "count": { "type": "int" } } },
+
+  "settingsNotificationTimeAdd": "Přidat čas",
+  "settingsNotificationTimeAddHint": "Vyberte hodinu (0–23)",
+  "settingsNotificationTimesLabel": "Časy notifikací",
+  "settingsNotificationTimesHint": "Připomínky budou zaslány v tyto časy. Max 5.",
+  "settingsNotificationTimeAlreadyExists": "Tento čas je již přidán.",
+  "settingsNotificationTimeAtLeastOne": "Musí zůstat alespoň jeden čas.",
+
+  "permissionBannerTitle": "Notifikace nemusí fungovat spolehlivě",
+  "permissionBannerBody": "Chybí oprávnění. Klepnutím opravíte v nastavení.",
+  "permissionBannerFix": "Opravit",
+
+  "settingsRomGuideTitle": "Speciální nastavení výrobce",
+  "settingsRomGuideSubtitle": "Xiaomi, Huawei, Samsung, Oppo a další",
+  "settingsRomGuideBody": "Některé telefony mají extra ochranu baterie, která může blokovat připomínky na pozadí. Níže jsou kroky pro nejrozšířenější výrobce:\n\n📱 Xiaomi / HyperOS\nNastavení → Aplikace → Správa aplikací → [Tato aplikace] → Baterie → Bez omezení\nNavíc: Nastavení → Aplikace → [Tato aplikace] → Automatické spouštění → Zapnout\n\n📱 Huawei / Honor\nNastavení → Aplikace → [Tato aplikace] → Baterie → Spouštění aplikace → Spravovat ručně → Povolte vše\n\n📱 Samsung (One UI)\nNastavení → Péče o zařízení → Baterie → Limity využití na pozadí → odeberte aplikaci ze seznamu\n\n📱 Oppo / Realme (ColorOS)\nNastavení → Baterie → Optimalizace baterie → [Tato aplikace] → Neoptimalizovat\n\n📱 Vivo (FuntouchOS)\nNastavení → Baterie → Vysoká spotřeba na pozadí → přidejte tuto aplikaci",
+  "settingsRomGuideClose": "Zavřít",
+
+  "importSelectRemindersHint": "Vyberte připomínky, které chcete přidat do svého seznamu:",
+  "importAction": "Importovat ({count})",
+  "@importAction": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "importSuccess": "Úspěšně importováno {count} připomínek",
+  "@importSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "importSelectTitle": "Vybrat připomínky k importu",
+
+  "categoryDocuments": "Doklady",
+  "categoryCar": "Auto",
+  "categoryHealth": "Zdraví",
+  "categoryFinance": "Finance",
+  "categorySubscriptions": "Předplatné",
+  "categoryHome": "Domácnost",
+  "categoryDigital": "Digitální život",
+  "categoryPets": "Mazlíčci",
+  "categoryMaintenance": "Pravidelná údržba",
+  "categoryCustom": "Vlastní",
+
+  "categoryDocumentsDesc": "Průkazy, pasy, povolení",
+  "categoryCarDesc": "STK, pojištění, servis",
+  "categoryHealthDesc": "Lékaři, prohlídky, očkování",
+  "categoryFinanceDesc": "Daně, pojistky, splátky",
+  "categorySubscriptionsDesc": "Netflix, Spotify, tarify",
+  "categoryHomeDesc": "Revize, filtry, údržba",
+  "categoryDigitalDesc": "Domény, certifikáty, licence",
+  "categoryPetsDesc": "Veterina, očkování, krmení",
+  "categoryMaintenanceDesc": "Kartáčky, filtry, čištění",
+  "categoryCustomDesc": "Vlastní připomínky",
+
+  "recurrenceDaily": "Každý den",
+  "recurrenceCustomYears": "{count, plural, one{Každý rok} few{Každé {count} roky} other{Každých {count} let}}",
+  "@recurrenceCustomYears": { "placeholders": { "count": { "type": "int" } } },
+  "recurrenceCustomWeeks": "{count, plural, one{Každý týden} few{Každé {count} týdny} other{Každých {count} týdnů}}",
+  "@recurrenceCustomWeeks": { "placeholders": { "count": { "type": "int" } } },
+  "recurrenceCustomDays": "{count, plural, one{Každý den} few{Každé {count} dny} other{Každých {count} dní}}",
+  "@recurrenceCustomDays": { "placeholders": { "count": { "type": "int" } } },
+  "recurrenceCustomMonths": "{count, plural, one{Každý měsíc} few{Každé {count} měsíce} other{Každých {count} měsíců}}",
+  "@recurrenceCustomMonths": { "placeholders": { "count": { "type": "int" } } }
 }

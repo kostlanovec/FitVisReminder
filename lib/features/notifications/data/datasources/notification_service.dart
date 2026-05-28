@@ -1,4 +1,5 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:fit_vis_reminder/core/background/background_handler.dart';
 import 'package:fit_vis_reminder/core/theme/app_theme.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_priority.dart';
 
@@ -117,7 +118,15 @@ class AwesomeNotificationService implements NotificationService {
   @pragma('vm:entry-point')
   static Future<void> _onNotificationDisplayed(
     ReceivedNotification notification,
-  ) async {}
+  ) async {
+    // Check if there are any more alarms pending.
+    // If the queue is empty, this was the last notification in the current
+    // batch → schedule the next nearest batch in the background.
+    final pending = await AwesomeNotifications().listScheduledNotifications();
+    if (pending.isEmpty) {
+      await rescheduleNextBatch();
+    }
+  }
 
   @pragma('vm:entry-point')
   static Future<void> _onDismissReceived(ReceivedAction action) async {}
@@ -155,43 +164,90 @@ class AwesomeNotificationService implements NotificationService {
   }) async {
     if (scheduledAt.isBefore(DateTime.now())) return;
 
+    // Silently skip if the user hasn't granted notification permission yet.
+    // The reminder is already saved to the database; notifications can be
+    // (re)scheduled later once permission is granted.
+    if (!await isAllowed()) return;
+
     final isHigh = priority == ReminderPriority.high;
     final channel = isHigh ? _channelImportant : _selectChannel(scheduledAt);
 
-    await AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: id,
-        channelKey: channel,
-        title: title,
-        body: body,
-        payload: payload,
-        notificationLayout: NotificationLayout.Default,
-        category: NotificationCategory.Reminder,
-        wakeUpScreen: true,
-        autoDismissible: false,
-      ),
-      schedule: NotificationCalendar.fromDate(
-        date: scheduledAt,
-        preciseAlarm: true,
-        allowWhileIdle: true,
-      ),
-      actionButtons: [
-        NotificationActionButton(
-          key: 'MARK_DONE',
-          label: doneLabel ?? (isHigh ? 'Understand ✓' : 'Done'),
-          actionType: ActionType.SilentAction,
-          enabled: true,
-          autoDismissible: true,
+    try {
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: id,
+          channelKey: channel,
+          title: title,
+          body: body,
+          payload: payload,
+          notificationLayout: NotificationLayout.Default,
+          category: NotificationCategory.Reminder,
+          wakeUpScreen: true,
+          autoDismissible: false,
         ),
-        NotificationActionButton(
-          key: 'SNOOZE',
-          label: snoozeLabel ?? 'Snooze',
-          actionType: ActionType.SilentAction,
-          enabled: true,
-          autoDismissible: true,
+        schedule: NotificationCalendar.fromDate(
+          date: scheduledAt,
+          preciseAlarm: true,
+          allowWhileIdle: true,
         ),
-      ],
-    );
+        actionButtons: [
+          NotificationActionButton(
+            key: 'MARK_DONE',
+            label: doneLabel ?? (isHigh ? 'Understand ✓' : 'Done'),
+            actionType: ActionType.SilentAction,
+            enabled: true,
+            autoDismissible: true,
+          ),
+          NotificationActionButton(
+            key: 'SNOOZE',
+            label: snoozeLabel ?? 'Snooze',
+            actionType: ActionType.SilentAction,
+            enabled: true,
+            autoDismissible: true,
+          ),
+        ],
+      );
+    } catch (_) {
+      // Fallback: schedule as inexact alarm if precise alarms are blocked by the OS
+      try {
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: id,
+          channelKey: channel,
+          title: title,
+          body: body,
+          payload: payload,
+          notificationLayout: NotificationLayout.Default,
+          category: NotificationCategory.Reminder,
+          wakeUpScreen: true,
+          autoDismissible: false,
+        ),
+        schedule: NotificationCalendar.fromDate(
+          date: scheduledAt,
+          preciseAlarm: false,
+          allowWhileIdle: true,
+        ),
+        actionButtons: [
+          NotificationActionButton(
+            key: 'MARK_DONE',
+            label: doneLabel ?? (isHigh ? 'Understand ✓' : 'Done'),
+            actionType: ActionType.SilentAction,
+            enabled: true,
+            autoDismissible: true,
+          ),
+          NotificationActionButton(
+            key: 'SNOOZE',
+            label: snoozeLabel ?? 'Snooze',
+            actionType: ActionType.SilentAction,
+            enabled: true,
+            autoDismissible: true,
+          ),
+        ],
+      );
+      } catch (_) {
+        // Inexact alarm also failed — notifications unavailable, ignore.
+      }
+    }
   }
 
   String _selectChannel(DateTime scheduledAt) {
@@ -227,15 +283,17 @@ class AwesomeNotificationService implements NotificationService {
 
   @override
   Future<void> showTestNotification({required String title, required String body}) async {
+    if (!await isAllowed()) return;
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
-        id: -1, // Use a fixed ID for tests
+        id: 999999, // Fixed positive ID reserved for test notifications
         channelKey: _channelImportant,
         title: title,
         body: body,
         notificationLayout: NotificationLayout.Default,
         category: NotificationCategory.Status,
         wakeUpScreen: true,
+        autoDismissible: true,
       ),
     );
   }
@@ -243,9 +301,10 @@ class AwesomeNotificationService implements NotificationService {
 
 class WebNotificationService implements NotificationService {
   @override
-  Future<void> initialize() async {
-    // Local notifications not supported on web via AwesomeNotifications
-  }
+  Future<void> initialize({
+    Map<String, String>? channelNames,
+    Map<String, String>? channelDescriptions,
+  }) async {}
 
   @override
   Future<bool> requestPermission() async => true;
@@ -262,9 +321,9 @@ class WebNotificationService implements NotificationService {
     ReminderPriority priority = ReminderPriority.normal,
     String channelKey = 'reminders',
     Map<String, String>? payload,
-  }) async {
-    // Not supported
-  }
+    String? snoozeLabel,
+    String? doneLabel,
+  }) async {}
 
   @override
   Future<void> cancel(int id) async {}

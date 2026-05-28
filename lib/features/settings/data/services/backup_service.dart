@@ -54,6 +54,15 @@ class BackupService {
     return reminders.length;
   }
 
+  /// Parses a JSON backup string and returns the reminders WITHOUT saving them.
+  /// Use this to preview the list before selective import via [SelectiveImportPage].
+  List<Reminder> parseRemindersFromJson(String rawJson) {
+    final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
+    final list = (decoded['reminders'] as List<dynamic>? ?? const [])
+        .cast<Map<String, dynamic>>();
+    return list.map(_fromJson).toList();
+  }
+
   Map<String, dynamic> _toJson(Reminder reminder) {
     return {
       'id': reminder.id,

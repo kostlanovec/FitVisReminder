@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
-import 'package:fit_vis_reminder/features/notifications/domain/entities/notification_trigger.dart';
+import 'package:fit_vis_reminder/features/reminders/domain/entities/notification_trigger.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/recurrence_rule.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_category.dart';
 

@@ -1,10 +1,9 @@
-import 'package:isar/isar.dart';
-import 'isar_opener.dart';
-import 'isar_opener_io.dart'
-    if (dart.library.html) 'isar_opener_web.dart'
-    if (dart.library.js_interop) 'isar_opener_web.dart';
+import 'package:fit_vis_reminder/core/database/app_database.dart';
 
-Future<Isar> openIsar() async {
-  final opener = getOpener();
-  return opener.open();
-}
+export 'package:fit_vis_reminder/core/database/app_database.dart'
+    show AppDatabase;
+
+/// Creates (lazily) the Drift SQLite database.
+/// On non-web platforms this is called once in main() and the instance is
+/// passed via [databaseProvider] override.
+AppDatabase openDatabase() => AppDatabase();

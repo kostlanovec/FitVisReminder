@@ -102,7 +102,7 @@ class _TemplatesPageState extends ConsumerState<TemplatesPage> {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: ChoiceChip(
                             avatar: Text(cat.emoji, style: const TextStyle(fontSize: 14)),
-                            label: Text(cat.label, style: const TextStyle(fontSize: 12)),
+                            label: Text(cat.localizedLabel(l), style: const TextStyle(fontSize: 12)),
                             selected: isSelected,
                             onSelected: (_) => setState(() => _selectedCategory = cat),
                             selectedColor: cat.color.withOpacity(0.2),
@@ -185,7 +185,7 @@ class _CategorySection extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                category.label.toUpperCase(),
+                category.localizedLabel(l).toUpperCase(),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -215,7 +215,7 @@ class _CategorySection extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: category.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppRadius.badge),
                   ),
                   child: Center(child: Text(tpl.icon, style: const TextStyle(fontSize: 20))),
                 ),

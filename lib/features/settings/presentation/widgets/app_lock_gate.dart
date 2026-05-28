@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -117,7 +117,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate> with WidgetsBindingOb
               Icons.lock_person_rounded,
               size: 64,
               color: isDark ? AppColors.primary : AppColors.primary,
-            ).animate().scale(duration: 400.ms, curve: Curves.backOut),
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOut),
             const SizedBox(height: 24),
             Text(
               l.appLockTitle,
@@ -150,7 +150,7 @@ class _AppLockGateState extends ConsumerState<AppLockGate> with WidgetsBindingOb
                     shape: BoxShape.circle,
                     color: filled 
                       ? AppColors.primary 
-                      : (isDark ? Colors.white10 : Colors.black05),
+                      : (isDark ? Colors.white10 : const Color(0x0D000000)),
                     border: Border.all(
                       color: filled ? AppColors.primary : (isDark ? Colors.white24 : Colors.black12),
                       width: 1.5,
@@ -230,7 +230,7 @@ class _KeyButton extends StatelessWidget {
         HapticFeedback.lightImpact();
         onTap();
       },
-      borderRadius: BorderRadius.circular(40),
+      borderRadius: BorderRadius.circular(AppRadius.full),
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -246,3 +246,4 @@ class _KeyButton extends StatelessWidget {
     );
   }
 }
+

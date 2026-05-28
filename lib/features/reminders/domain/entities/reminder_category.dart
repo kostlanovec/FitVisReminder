@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fit_vis_reminder/core/theme/app_theme.dart';
+import 'package:fit_vis_reminder/l10n/app_localizations.dart';
 
 enum ReminderCategory {
   documents,
@@ -72,4 +73,30 @@ enum ReminderCategory {
       ReminderCategory.custom => 'Vlastní připomínky',
     };
   }
+
+  String localizedLabel(AppLocalizations l) => switch (this) {
+    ReminderCategory.documents    => l.categoryDocuments,
+    ReminderCategory.car          => l.categoryCar,
+    ReminderCategory.health       => l.categoryHealth,
+    ReminderCategory.finance      => l.categoryFinance,
+    ReminderCategory.subscriptions => l.categorySubscriptions,
+    ReminderCategory.home         => l.categoryHome,
+    ReminderCategory.digital      => l.categoryDigital,
+    ReminderCategory.pets         => l.categoryPets,
+    ReminderCategory.maintenance  => l.categoryMaintenance,
+    ReminderCategory.custom       => l.categoryCustom,
+  };
+
+  String localizedDescription(AppLocalizations l) => switch (this) {
+    ReminderCategory.documents    => l.categoryDocumentsDesc,
+    ReminderCategory.car          => l.categoryCarDesc,
+    ReminderCategory.health       => l.categoryHealthDesc,
+    ReminderCategory.finance      => l.categoryFinanceDesc,
+    ReminderCategory.subscriptions => l.categorySubscriptionsDesc,
+    ReminderCategory.home         => l.categoryHomeDesc,
+    ReminderCategory.digital      => l.categoryDigitalDesc,
+    ReminderCategory.pets         => l.categoryPetsDesc,
+    ReminderCategory.maintenance  => l.categoryMaintenanceDesc,
+    ReminderCategory.custom       => l.categoryCustomDesc,
+  };
 }

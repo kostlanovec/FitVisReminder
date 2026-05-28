@@ -1,6 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// ── Spacing tokens ──────────────────────────────────────────────────────────
+abstract final class AppSpacing {
+  static const double xs   = 4.0;
+  static const double sm   = 8.0;
+  static const double md   = 12.0;
+  static const double lg   = 16.0;
+  static const double xl   = 20.0;
+  static const double xxl  = 28.0;
+  static const double xxxl = 40.0;
+
+  // Semantic aliases
+  static const double page    = xl;    // horizontal page margin
+  static const double section = xxl;   // gap between sections
+  static const double card    = lg;    // internal card padding
+}
+
+// ── Radius tokens ───────────────────────────────────────────────────────────
+abstract final class AppRadius {
+  static const double xs   = 6.0;   // chips, tiny badges
+  static const double sm   = 8.0;   // icon containers, small elements
+  static const double md   = 12.0;  // inputs, buttons, small cards
+  static const double lg   = 16.0;  // standard cards
+  static const double xl   = 22.0;  // featured cards, modals
+  static const double full = 999.0; // pill / circle
+
+  // Semantic aliases
+  static const double card   = lg;
+  static const double button = md;
+  static const double input  = md;
+  static const double chip   = xs;
+  static const double badge  = sm;
+  static const double sheet  = xl;
+}
+
 abstract final class AppColors {
   // Brand
   static const primary = Color(0xFF2563EB);
@@ -115,7 +149,7 @@ abstract final class AppTheme {
         elevation: 0,
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           side: BorderSide(
             color: isDark ? AppColors.borderDark : AppColors.borderLight,
             width: 1,
@@ -145,7 +179,7 @@ abstract final class AppTheme {
             isDark ? AppColors.surfaceDark : AppColors.surface,
         indicatorColor: AppColors.primary.withOpacity(0.1),
         indicatorShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
@@ -175,20 +209,20 @@ abstract final class AppTheme {
             ? AppColors.cardDarkElevated.withOpacity(0.5)
             : AppColors.backgroundAlt,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: BorderSide(
             color: isDark ? AppColors.borderDark : AppColors.borderLight,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: BorderSide(
             color: isDark ? AppColors.borderDark : AppColors.borderLight,
             width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.input),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         hintStyle: TextStyle(
@@ -200,13 +234,13 @@ abstract final class AppTheme {
       ),
       chipTheme: ChipThemeData(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.chip)),
         side: BorderSide(
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
           width: 1,
         ),
-        backgroundColor:
-            isDark ? AppColors.cardDark : AppColors.surface,
+        backgroundColor: isDark ? AppColors.cardDark : AppColors.surface,
       ),
       dividerTheme: DividerThemeData(
         color: isDark ? AppColors.borderDark : AppColors.borderLight,
@@ -219,30 +253,27 @@ abstract final class AppTheme {
         minLeadingWidth: 24,
         iconColor:
             isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding:
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
-          textStyle: GoogleFonts.inter(
-              fontSize: 15, fontWeight: FontWeight.w600),
+              borderRadius: BorderRadius.circular(AppRadius.button)),
+          textStyle:
+              GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
+              borderRadius: BorderRadius.circular(AppRadius.button)),
           side: BorderSide(
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          ),
+              color: isDark ? AppColors.borderDark : AppColors.borderLight),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -250,94 +281,42 @@ abstract final class AppTheme {
           foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+              borderRadius: BorderRadius.circular(AppRadius.button)),
         ),
       ),
     );
   }
 
+  // Single font family (Inter) with clear weight/size hierarchy.
+  // Removing Outfit eliminates the "two fonts fighting" effect.
   static TextTheme _buildTextTheme(bool isDark) {
-    final color =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final color = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+
+    TextStyle i(double size, FontWeight w,
+            {double ls = 0, double h = 1.3}) =>
+        GoogleFonts.inter(
+            fontSize: size,
+            fontWeight: w,
+            letterSpacing: ls,
+            height: h,
+            color: color);
+
     return GoogleFonts.interTextTheme().copyWith(
-      displayLarge: GoogleFonts.outfit(
-          fontSize: 57,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -1.5,
-          color: color),
-      displayMedium: GoogleFonts.outfit(
-          fontSize: 45,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -1.0,
-          color: color),
-      displaySmall: GoogleFonts.outfit(
-          fontSize: 36,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
-          color: color),
-      headlineLarge: GoogleFonts.outfit(
-          fontSize: 32,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
-          color: color),
-      headlineMedium: GoogleFonts.outfit(
-          fontSize: 28,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.3,
-          color: color),
-      headlineSmall: GoogleFonts.outfit(
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.2,
-          color: color),
-      titleLarge: GoogleFonts.outfit(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.2,
-          color: color),
-      titleMedium: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.1,
-          color: color),
-      titleSmall: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0,
-          color: color),
-      bodyLarge: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0,
-          height: 1.5,
-          color: color),
-      bodyMedium: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0,
-          height: 1.5,
-          color: color),
-      bodySmall: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-          letterSpacing: 0,
-          height: 1.4,
-          color: color),
-      labelLarge: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.1,
-          color: color),
-      labelMedium: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
-          color: color),
-      labelSmall: GoogleFonts.inter(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.3,
-          color: color),
+      displayLarge:  i(48, FontWeight.w800, ls: -2.0),
+      displayMedium: i(40, FontWeight.w700, ls: -1.5),
+      displaySmall:  i(32, FontWeight.w700, ls: -1.0),
+      headlineLarge: i(28, FontWeight.w700, ls: -0.8),
+      headlineMedium:i(24, FontWeight.w700, ls: -0.5),
+      headlineSmall: i(20, FontWeight.w700, ls: -0.3),
+      titleLarge:    i(18, FontWeight.w600, ls: -0.2),
+      titleMedium:   i(16, FontWeight.w600, ls: -0.1),
+      titleSmall:    i(14, FontWeight.w600, ls:  0.0),
+      bodyLarge:     i(16, FontWeight.w400, ls:  0.0, h: 1.55),
+      bodyMedium:    i(14, FontWeight.w400, ls:  0.0, h: 1.55),
+      bodySmall:     i(12, FontWeight.w400, ls:  0.0, h: 1.45),
+      labelLarge:    i(14, FontWeight.w600, ls:  0.1),
+      labelMedium:   i(12, FontWeight.w500, ls:  0.1),
+      labelSmall:    i(11, FontWeight.w500, ls:  0.3),
     );
   }
 

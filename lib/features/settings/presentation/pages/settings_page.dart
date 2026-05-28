@@ -2,9 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:fit_vis_reminder/core/constants/app_constants.dart';
 import 'package:fit_vis_reminder/core/di/providers.dart';
 import 'package:fit_vis_reminder/core/theme/app_theme.dart';
+import 'package:fit_vis_reminder/core/utils/app_router.dart';
 import 'package:fit_vis_reminder/features/settings/presentation/providers/settings_provider.dart';
 import 'package:fit_vis_reminder/l10n/app_localizations.dart';
 
@@ -17,8 +20,6 @@ class SettingsPage extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
     final lockSettings = ref.watch(appLockSettingsProvider);
     final l = AppLocalizations.of(context)!;
-    final cs = Localizations.localeOf(context).languageCode == 'cs';
-
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -63,17 +64,18 @@ class SettingsPage extends ConsumerWidget {
                     title: Text(l.settingsRescheduleAll),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () async {
-                      await ref.read(reminderSchedulerProvider).scheduleAll();
+                      final count = await ref.read(reminderSchedulerProvider).scheduleAll(l);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(l.settingsRescheduleAll),
+                            content: Text(l.settingsRescheduleResult(count)),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
                       }
                     },
                   ),
+                  _NotificationTimesTile(l: l),
                   ListTile(
                     leading: const Icon(Icons.notification_important_rounded),
                     title: Text(l.settingsTestNotification),
@@ -81,10 +83,17 @@ class SettingsPage extends ConsumerWidget {
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () async {
                       final svc = ref.read(notificationServiceProvider);
-                      await svc.showTestNotification(
-                        title: "FitVis Reminder 🧪",
-                        body: l.settingsTestNotificationSent,
-                      );
+                      final allowed = await svc.isAllowed();
+                      if (!allowed) {
+                        await svc.requestPermission();
+                        return;
+                      }
+                      try {
+                        await svc.showTestNotification(
+                          title: "FitVis Reminder 🧪",
+                          body: l.settingsTestNotificationSent,
+                        );
+                      } catch (_) {}
                     },
                   ),
                   ListTile(
@@ -183,14 +192,6 @@ class SettingsPage extends ConsumerWidget {
               _SettingsSection(
                 title: l.settingsSectionPerformance,
                 children: [
-                  _NotificationHorizonTile(
-                    current: ref.watch(notificationSettingsProvider).scheduleHorizonMonths,
-                    l: l,
-                  ),
-                  _NotificationLimitTile(
-                    current: ref.watch(notificationSettingsProvider).maxTriggersPerReminder,
-                    l: l,
-                  ),
                   SwitchListTile(
                     secondary: const Icon(Icons.calendar_today_rounded, size: 20, color: AppColors.primary),
                     title: Text(l.settingsCalendarSync, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
@@ -198,6 +199,12 @@ class SettingsPage extends ConsumerWidget {
                     value: ref.watch(notificationSettingsProvider).calendarSyncEnabled,
                     onChanged: (val) => ref.read(notificationSettingsProvider.notifier).setCalendarSync(val),
                   ),
+                  const Divider(height: 1, indent: 56),
+                  _BatteryOptimizationTile(l: l),
+                  const Divider(height: 1, indent: 56),
+                  _PreciseAlarmsTile(l: l),
+                  const Divider(height: 1, indent: 56),
+                  _RomGuideTile(l: l),
                 ],
               ).animate().fadeIn(delay: 195.ms).slideY(begin: 0.05),
               _SettingsSection(
@@ -315,25 +322,6 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Future<void> _importBackup(BuildContext context, WidgetRef ref, AppLocalizations l) async {
-    final confirmReplace = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l.settingsBackupImportConfirmTitle),
-        content: Text(l.settingsBackupImportConfirmBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l.buttonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l.buttonSave),
-          ),
-        ],
-      ),
-    );
-    if (confirmReplace != true || !context.mounted) return;
-
     final ctrl = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
@@ -355,14 +343,14 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
     if (ok != true || !context.mounted) return;
+
     try {
-      final count = await ref.read(backupServiceProvider).importFromJson(ctrl.text);
-      await ref.read(reminderSchedulerProvider).scheduleAll();
+      final reminders = ref.read(backupServiceProvider).parseRemindersFromJson(ctrl.text);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.settingsBackupImportSuccess(count))),
-      );
+      // Navigate to SelectiveImportPage so the user can pick which to import
+      context.push(AppRoutes.selectiveImport, extra: reminders);
     } catch (_) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l.settingsBackupImportError)),
       );
@@ -387,6 +375,152 @@ class SettingsPage extends ConsumerWidget {
       ),
     );
   }
+
+}
+
+// ── Notification times tile ───────────────────────────────────────────────────
+
+/// Shows the list of configured notification hours and lets the user
+/// add (via system TimePicker) or remove individual times.
+class _NotificationTimesTile extends ConsumerWidget {
+  const _NotificationTimesTile({required this.l});
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hours = ref.watch(notificationSettingsProvider).notificationHours;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Label row
+          Row(
+            children: [
+              const Icon(Icons.schedule_rounded, size: 22, color: AppColors.primary),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.settingsNotificationTimesLabel,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      l.settingsNotificationTimesHint,
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Time chips
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              for (final hour in hours)
+                _TimeChip(
+                  hour: hour,
+                  isDark: isDark,
+                  canDelete: hours.length > 1,
+                  onDelete: () async {
+                    final notifier = ref.read(notificationSettingsProvider.notifier);
+                    if (hours.length <= 1) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l.settingsNotificationTimeAtLeastOne),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      return;
+                    }
+                    await notifier.removeHour(hour);
+                  },
+                ),
+              // Add button — hidden when cap reached
+              if (hours.length < 5)
+                ActionChip(
+                  avatar: const Icon(Icons.add_rounded, size: 16),
+                  label: Text(l.settingsNotificationTimeAdd),
+                  onPressed: () => _pickAndAdd(context, ref, hours),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAndAdd(
+    BuildContext context,
+    WidgetRef ref,
+    List<int> current,
+  ) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: current.last < 23 ? current.last + 1 : 8,
+        minute: 0,
+      ),
+      helpText: l.settingsNotificationTimeAddHint,
+    );
+    if (picked == null || !context.mounted) return;
+
+    final hour = picked.hour;
+    if (current.contains(hour)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l.settingsNotificationTimeAlreadyExists),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    await ref.read(notificationSettingsProvider.notifier).addHour(hour);
+  }
+}
+
+class _TimeChip extends StatelessWidget {
+  const _TimeChip({
+    required this.hour,
+    required this.isDark,
+    required this.canDelete,
+    required this.onDelete,
+  });
+
+  final int hour;
+  final bool isDark;
+  final bool canDelete;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = '${hour.toString().padLeft(2, '0')}:00';
+    return Chip(
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+        ),
+      ),
+      avatar: const Icon(Icons.access_time_rounded, size: 15),
+      backgroundColor:
+          isDark ? AppColors.primary.withOpacity(0.18) : AppColors.primary.withOpacity(0.10),
+      side: BorderSide(color: AppColors.primary.withOpacity(0.35)),
+      deleteIcon: canDelete
+          ? const Icon(Icons.close_rounded, size: 14)
+          : null,
+      onDeleted: canDelete ? onDelete : null,
+      deleteIconColor: AppColors.textSecondary,
+    );
+  }
 }
 
 class _SettingsSection extends StatelessWidget {
@@ -401,7 +535,7 @@ class _SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 16, 10),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.page, 24, AppSpacing.lg, 10),
           child: Text(
             title.toUpperCase(),
             style: const TextStyle(
@@ -413,10 +547,10 @@ class _SettingsSection extends StatelessWidget {
           ),
         ),
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
+          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           decoration: BoxDecoration(
             color: isDark ? AppColors.cardDarkElevated : Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight.withOpacity(0.5)),
             boxShadow: cardShadow(isDark),
           ),
@@ -440,7 +574,7 @@ class _ThemeModeTile extends ConsumerWidget {
       trailing: DropdownButton<ThemeMode>(
         value: current,
         underline: const SizedBox.shrink(),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         items: [
           DropdownMenuItem(
             value: ThemeMode.system,
@@ -482,7 +616,7 @@ class _LocaleTile extends ConsumerWidget {
       trailing: DropdownButton<Locale>(
         value: current,
         underline: const SizedBox.shrink(),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         items: [
           DropdownMenuItem(
             value: const Locale('cs'),
@@ -501,91 +635,259 @@ class _LocaleTile extends ConsumerWidget {
   }
 }
 
-class _NotificationHorizonTile extends ConsumerWidget {
-  const _NotificationHorizonTile({required this.current, required this.l});
-  final int current;
+class _BatteryOptimizationTile extends StatefulWidget {
+  const _BatteryOptimizationTile({required this.l});
   final AppLocalizations l;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListTile(
-      leading: const Icon(Icons.timeline_rounded),
-      title: Text(l.settingsNotifHorizon),
-      subtitle: Text(l.settingsNotifHorizonValue(current)),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () => _showPicker(context, ref),
-    );
+  State<_BatteryOptimizationTile> createState() => _BatteryOptimizationTileState();
+}
+
+class _BatteryOptimizationTileState extends State<_BatteryOptimizationTile> with WidgetsBindingObserver {
+  bool _isOptimizing = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkStatus();
   }
 
-  void _showPicker(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l.settingsNotifHorizon),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [1, 3, 6, 12, 24, 36].map((m) {
-            return RadioListTile<int>(
-              title: Text(l.settingsNotifHorizonValue(m)),
-              value: m,
-              groupValue: current,
-              onChanged: (v) {
-                if (v != null) {
-                  ref.read(notificationSettingsProvider.notifier).setHorizon(v);
-                  Navigator.pop(ctx);
-                }
-              },
-            );
-          }).toList(),
-        ),
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkStatus();
+    }
+  }
+
+  Future<void> _checkStatus() async {
+    if (kIsWeb) return;
+    try {
+      final status = await Permission.ignoreBatteryOptimizations.status;
+      if (mounted) {
+        setState(() {
+          _isOptimizing = !status.isGranted;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _requestExemption() async {
+    if (kIsWeb) return;
+    try {
+      if (_isOptimizing) {
+        final status = await Permission.ignoreBatteryOptimizations.request();
+        setState(() {
+          _isOptimizing = !status.isGranted;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.l.settingsBatteryAlreadyAllowed),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb) return const SizedBox.shrink();
+
+    return ListTile(
+      leading: Icon(
+        _isOptimizing ? Icons.battery_saver_rounded : Icons.battery_charging_full_rounded,
+        color: _isOptimizing ? AppColors.accentAmber : AppColors.primary,
       ),
+      title: Text(widget.l.settingsBatteryOptimization),
+      subtitle: Text(
+        _isOptimizing
+            ? widget.l.settingsBatteryOptimizationDisabled
+            : widget.l.settingsBatteryOptimizationEnabled,
+      ),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: _requestExemption,
     );
   }
 }
 
-class _NotificationLimitTile extends ConsumerWidget {
-  const _NotificationLimitTile({required this.current, required this.l});
-  final int current;
+class _PreciseAlarmsTile extends StatefulWidget {
+  const _PreciseAlarmsTile({required this.l});
   final AppLocalizations l;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    String label = current == 1 
-      ? l.settingsNotifLimitOnlyNext 
-      : (current == 0 ? l.settingsNotifLimitAll : l.settingsNotifLimitValue(current));
-    
+  State<_PreciseAlarmsTile> createState() => _PreciseAlarmsTileState();
+}
+
+class _PreciseAlarmsTileState extends State<_PreciseAlarmsTile> with WidgetsBindingObserver {
+  bool _isAllowed = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkStatus();
+    }
+  }
+
+  Future<void> _checkStatus() async {
+    if (kIsWeb) return;
+    try {
+      final status = await Permission.scheduleExactAlarm.status;
+      if (mounted) {
+        setState(() {
+          _isAllowed = status.isGranted;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _requestPermission() async {
+    if (kIsWeb) return;
+    if (_isAllowed) return;
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(widget.l.settingsPreciseAlarmsDialogTitle),
+        content: Text(widget.l.settingsPreciseAlarmsDialogBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(widget.l.buttonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(widget.l.buttonSave),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      try {
+        await Permission.scheduleExactAlarm.request();
+        _checkStatus();
+      } catch (_) {}
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb) return const SizedBox.shrink();
+
     return ListTile(
-      leading: const Icon(Icons.low_priority_rounded),
-      title: Text(l.settingsNotifLimit),
-      subtitle: Text(label),
+      leading: Icon(
+        _isAllowed ? Icons.alarm_on_rounded : Icons.alarm_add_rounded,
+        color: _isAllowed ? AppColors.primary : AppColors.accentAmber,
+      ),
+      title: Text(widget.l.settingsPreciseAlarms),
+      subtitle: Text(
+        _isAllowed
+            ? widget.l.settingsPreciseAlarmsEnabled
+            : widget.l.settingsPreciseAlarmsDisabled,
+      ),
       trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () => _showPicker(context, ref),
+      onTap: _requestPermission,
+    );
+  }
+}
+
+// ── ROM guide tile ────────────────────────────────────────────────────────────
+
+class _RomGuideTile extends StatelessWidget {
+  const _RomGuideTile({required this.l});
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb) return const SizedBox.shrink();
+
+    return ListTile(
+      leading: const Icon(Icons.phone_android_rounded),
+      title: Text(l.settingsRomGuideTitle),
+      subtitle: Text(l.settingsRomGuideSubtitle),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () => _showGuide(context),
     );
   }
 
-  void _showPicker(BuildContext context, WidgetRef ref) {
-    showDialog(
+  void _showGuide(BuildContext context) {
+    showModalBottomSheet<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l.settingsNotifLimit),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [1, 3, 5, 10, 0].map((c) {
-            String title = c == 1 
-              ? l.settingsNotifLimitOnlyNext 
-              : (c == 0 ? l.settingsNotifLimitAll : l.settingsNotifLimitValue(c));
-            return RadioListTile<int>(
-              title: Text(title),
-              value: c,
-              groupValue: current,
-              onChanged: (v) {
-                if (v != null) {
-                  ref.read(notificationSettingsProvider.notifier).setLimit(v);
-                  Navigator.pop(ctx);
-                }
-              },
-            );
-          }).toList(),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.92,
+        builder: (_, scrollController) => Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.borderLight,
+                borderRadius: BorderRadius.circular(AppRadius.xs),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.phone_android_rounded, size: 22,
+                      color: AppColors.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      l.settingsRomGuideTitle,
+                      style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                child: Text(
+                  l.settingsRomGuideBody,
+                  style: const TextStyle(fontSize: 14, height: 1.6),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

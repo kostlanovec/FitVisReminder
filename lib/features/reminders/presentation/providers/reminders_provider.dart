@@ -4,9 +4,8 @@ import 'package:fit_vis_reminder/l10n/app_localizations.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_category.dart';
 import 'package:fit_vis_reminder/features/calendar/data/services/calendar_sync_service.dart';
-import 'package:fit_vis_reminder/features/notifications/data/datasources/widget_service.dart';
+import 'package:fit_vis_reminder/features/notifications/data/datasources/widget_service.dart' show widgetServiceProvider;
 import 'package:fit_vis_reminder/features/settings/presentation/providers/settings_provider.dart';
-import 'package:fit_vis_reminder/features/notifications/domain/usecases/reminder_scheduler.dart';
 
 // ── Streams ────────────────────────────────────────────────────────────────
 
@@ -155,17 +154,26 @@ class ReminderNotifier extends AsyncNotifier<void> {
     state = const AsyncData(null);
   }
 
+  /// Undo a "mark done" action by restoring the reminder to its original state.
+  Future<void> undoMarkDone(Reminder original, AppLocalizations l) async {
+    state = const AsyncLoading();
+    await ref.read(reminderRepositoryProvider).save(
+      original.copyWith(isActive: true, updatedAt: DateTime.now()),
+    );
+    final updated = original.copyWith(isActive: true);
+    await ref.read(reminderSchedulerProvider).scheduleForReminder(updated, l);
+    await _afterMutation(updated);
+    state = const AsyncData(null);
+  }
+
   Future<void> _afterMutation(Reminder? reminder, {bool isDeleted = false}) async {
     // 1. Sync Calendar
     final settings = ref.read(notificationSettingsProvider);
     if (settings.calendarSyncEnabled && reminder != null) {
       final calendarSync = ref.read(calendarSyncServiceProvider);
       if (isDeleted || !reminder.isActive) {
-        // Find if we had an event and delete it? 
-        // For simplicity, we just delete if we have an ID
         if (reminder.calendarEventId != null) {
-          // We'd need the calendar ID too, which our service creates.
-          // Let's improve service to handle this better or just try-catch
+          await calendarSync.deleteReminderEvent(reminder.calendarEventId!);
         }
       } else {
         final eventId = await calendarSync.syncReminder(reminder);

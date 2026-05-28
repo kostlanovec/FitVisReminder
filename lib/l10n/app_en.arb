@@ -78,6 +78,8 @@
   "reminderFormFieldDueDate": "Due date",
   "reminderFormFieldRecurrence": "Recurrence",
   "reminderFormFieldNotifications": "Notifications",
+  "reminderFormBasicInfo": "Basic info",
+  "reminderFormRecurrenceSection": "Recurrence",
   "reminderFormTemplateSection": "Template (optional)",
   "reminderFormAllTemplates": "All templates",
   "reminderFormPickTemplate": "Choose a template",
@@ -117,6 +119,17 @@
   "settingsNotifications": "Notifications",
   "settingsNotificationsPermission": "Notification permission",
   "settingsRescheduleAll": "Reschedule all",
+  "settingsRescheduleResult": "Scheduled {count} notifications",
+  "@settingsRescheduleResult": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsNotificationTime": "Notification time",
+  "settingsNotificationTimeValue": "Notifications at {hour}:00",
+  "@settingsNotificationTimeValue": {
+    "placeholders": {
+      "hour": { "type": "int" }
+    }
+  },
   "settingsCancelAll": "Cancel all",
   "settingsTestNotification": "Test notification",
   "settingsTestNotificationDesc": "Send a trial notification",
@@ -154,12 +167,19 @@
   "reminderCustomDays": "Days",
   "reminderCustomMonths": "Months",
   "reminderCustomYears": "Years",
+  "reminderCustomWeeks": "Weeks",
+  "reminderTriggerCustomDays": "{days} days before (Custom)",
+  "@reminderTriggerCustomDays": {
+    "placeholders": { "days": { "type": "int" } }
+  },
   "reminderCustomLabel": "Custom",
   "greetingMorning": "Good morning ☀️",
   "greetingAfternoon": "Good afternoon 👋",
   "greetingEvening": "Good evening 🌙",
 
   "reminderDetailSnooze": "Snooze 1 week",
+  "reminderSnoozeMonth": "Snooze 1 month",
+  "reminderListContextSelect": "Select",
   "reminderDetailSnoozed": "Snoozed to {date}",
   "@reminderDetailSnoozed": {
     "placeholders": { "date": { "type": "String" } }
@@ -303,5 +323,87 @@
   "settingsCalendarSync": "Calendar Synchronization",
   "settingsCalendarSyncHint": "Automatically add deadlines to system calendar",
   "buttonShare": "Share",
-  "selectionShare": "Share ({count})"
+  "selectionShare": "Share ({count})",
+  "dashboardSectionUpcoming": "Upcoming",
+  "dashboardNothingUpcoming": "Nothing upcoming",
+  "reminderFormTriggersSection": "Notifications",
+  "reminderFormTriggersRequired": "Please select at least one notification trigger",
+  "settingsBatteryOptimization": "Background execution (battery)",
+  "settingsBatteryOptimizationDisabled": "Optimized (reminders might be delayed)",
+  "settingsBatteryOptimizationEnabled": "Unrestricted (reliable execution)",
+  "settingsBatteryAlreadyAllowed": "The app already has background execution allowed.",
+  "settingsPreciseAlarms": "Precise Alarms",
+  "settingsPreciseAlarmsEnabled": "Allowed (accurate reminders)",
+  "settingsPreciseAlarmsDisabled": "Restricted (reminders may be delayed)",
+  "settingsPreciseAlarmsDialogTitle": "Precise Alarms Required",
+  "settingsPreciseAlarmsDialogBody": "This application needs permission to schedule precise alarms to deliver notifications at the exact scheduled time. Tap Save to open system settings.",
+
+  "dashboardSectionOverdue": "Overdue",
+  "dashboardSectionThisWeek": "This week",
+  "dashboardSectionThisMonth": "This month",
+  "dashboardCalmTitle": "All clear",
+  "dashboardCalmHint": "Nothing due in the next month.",
+  "dashboardCalmNext": "Next",
+  "dashboardShowAll": "Show all ({count})",
+  "@dashboardShowAll": { "placeholders": { "count": { "type": "int" } } },
+
+  "settingsNotificationTimeAdd": "Add time",
+  "settingsNotificationTimeAddHint": "Select hour (0–23)",
+  "settingsNotificationTimesLabel": "Notification times",
+  "settingsNotificationTimesHint": "Reminders will be sent at these times. Max 5.",
+  "settingsNotificationTimeAlreadyExists": "This time is already added.",
+  "settingsNotificationTimeAtLeastOne": "At least one time must remain.",
+
+  "permissionBannerTitle": "Notifications may not be reliable",
+  "permissionBannerBody": "Missing permissions. Tap to fix in Settings.",
+  "permissionBannerFix": "Fix",
+
+  "settingsRomGuideTitle": "Manufacturer-specific setup",
+  "settingsRomGuideSubtitle": "Xiaomi, Huawei, Samsung, Oppo and others",
+  "settingsRomGuideBody": "Some phones have extra battery protection that can block background reminders. Below are steps for the most common manufacturers:\n\n📱 Xiaomi / HyperOS\nSettings → Apps → Manage Apps → [This App] → Battery → No restrictions\nAlso: Settings → Apps → [This App] → Autostart → On\n\n📱 Huawei / Honor\nSettings → Apps → [This App] → Battery → App launch → Manage manually → Allow all\n\n📱 Samsung (One UI)\nSettings → Device Care → Battery → Background usage limits → remove this app from the list\n\n📱 Oppo / Realme (ColorOS)\nSettings → Battery → Battery Optimization → [This App] → Don't optimize\n\n📱 Vivo (FuntouchOS)\nSettings → Battery → High background power consumption → add this app",
+  "settingsRomGuideClose": "Close",
+
+  "importSelectRemindersHint": "Select the reminders you want to add to your list:",
+  "importAction": "Import ({count})",
+  "@importAction": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "importSuccess": "Successfully imported {count} reminders",
+  "@importSuccess": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "importSelectTitle": "Select reminders to import",
+
+  "categoryDocuments": "Documents",
+  "categoryCar": "Car",
+  "categoryHealth": "Health",
+  "categoryFinance": "Finance",
+  "categorySubscriptions": "Subscriptions",
+  "categoryHome": "Home",
+  "categoryDigital": "Digital life",
+  "categoryPets": "Pets",
+  "categoryMaintenance": "Maintenance",
+  "categoryCustom": "Custom",
+
+  "categoryDocumentsDesc": "ID cards, passports, permits",
+  "categoryCarDesc": "MOT, insurance, service",
+  "categoryHealthDesc": "Doctors, check-ups, vaccines",
+  "categoryFinanceDesc": "Taxes, insurance, payments",
+  "categorySubscriptionsDesc": "Netflix, Spotify, subscriptions",
+  "categoryHomeDesc": "Inspections, filters, maintenance",
+  "categoryDigitalDesc": "Domains, certificates, licences",
+  "categoryPetsDesc": "Vet, vaccines, feeding",
+  "categoryMaintenanceDesc": "Brushes, filters, cleaning",
+  "categoryCustomDesc": "Custom reminders",
+
+  "recurrenceDaily": "Daily",
+  "recurrenceCustomYears": "{count, plural, one{Every year} other{Every {count} years}}",
+  "@recurrenceCustomYears": { "placeholders": { "count": { "type": "int" } } },
+  "recurrenceCustomWeeks": "{count, plural, one{Every week} other{Every {count} weeks}}",
+  "@recurrenceCustomWeeks": { "placeholders": { "count": { "type": "int" } } },
+  "recurrenceCustomDays": "{count, plural, one{Every day} other{Every {count} days}}",
+  "@recurrenceCustomDays": { "placeholders": { "count": { "type": "int" } } },
+  "recurrenceCustomMonths": "{count, plural, one{Every month} other{Every {count} months}}",
+  "@recurrenceCustomMonths": { "placeholders": { "count": { "type": "int" } } }
 }

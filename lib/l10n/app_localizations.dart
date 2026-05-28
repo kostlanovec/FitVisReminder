@@ -464,6 +464,18 @@ abstract class AppLocalizations {
   /// **'Notifications'**
   String get reminderFormFieldNotifications;
 
+  /// No description provided for @reminderFormBasicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic info'**
+  String get reminderFormBasicInfo;
+
+  /// No description provided for @reminderFormRecurrenceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurrence'**
+  String get reminderFormRecurrenceSection;
+
   /// No description provided for @reminderFormTemplateSection.
   ///
   /// In en, this message translates to:
@@ -491,7 +503,7 @@ abstract class AppLocalizations {
   /// No description provided for @recurrenceDaily.
   ///
   /// In en, this message translates to:
-  /// **'Every day'**
+  /// **'Daily'**
   String get recurrenceDaily;
 
   /// No description provided for @recurrenceWeekly.
@@ -515,8 +527,8 @@ abstract class AppLocalizations {
   /// No description provided for @recurrenceCustomDays.
   ///
   /// In en, this message translates to:
-  /// **'Every {days} days'**
-  String recurrenceCustomDays(int days);
+  /// **'{count, plural, one{Every day} other{Every {count} days}}'**
+  String recurrenceCustomDays(int count);
 
   /// No description provided for @triggerMonthBefore.
   ///
@@ -644,6 +656,24 @@ abstract class AppLocalizations {
   /// **'Reschedule all'**
   String get settingsRescheduleAll;
 
+  /// No description provided for @settingsRescheduleResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled {count} notifications'**
+  String settingsRescheduleResult(int count);
+
+  /// No description provided for @settingsNotificationTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification time'**
+  String get settingsNotificationTime;
+
+  /// No description provided for @settingsNotificationTimeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications at {hour}:00'**
+  String settingsNotificationTimeValue(int hour);
+
   /// No description provided for @settingsCancelAll.
   ///
   /// In en, this message translates to:
@@ -719,7 +749,7 @@ abstract class AppLocalizations {
   /// No description provided for @categoryDigital.
   ///
   /// In en, this message translates to:
-  /// **'Digital'**
+  /// **'Digital life'**
   String get categoryDigital;
 
   /// No description provided for @categoryPets.
@@ -848,6 +878,18 @@ abstract class AppLocalizations {
   /// **'Years'**
   String get reminderCustomYears;
 
+  /// No description provided for @reminderCustomWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Weeks'**
+  String get reminderCustomWeeks;
+
+  /// No description provided for @reminderTriggerCustomDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days before (Custom)'**
+  String reminderTriggerCustomDays(int days);
+
   /// No description provided for @reminderCustomLabel.
   ///
   /// In en, this message translates to:
@@ -877,6 +919,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Snooze 1 week'**
   String get reminderDetailSnooze;
+
+  /// No description provided for @reminderSnoozeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze 1 month'**
+  String get reminderSnoozeMonth;
+
+  /// No description provided for @reminderListContextSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get reminderListContextSelect;
 
   /// No description provided for @reminderDetailSnoozed.
   ///
@@ -1399,6 +1453,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Automatically add deadlines to system calendar'**
   String get settingsCalendarSyncHint;
+
+  /// No description provided for @buttonShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get buttonShare;
+
+  /// No description provided for @selectionShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share ({count})'**
+  String selectionShare(Object count);
+
+  /// No description provided for @dashboardSectionUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get dashboardSectionUpcoming;
+
+  /// No description provided for @dashboardNothingUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing upcoming'**
+  String get dashboardNothingUpcoming;
+
+  /// No description provided for @reminderFormTriggersSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get reminderFormTriggersSection;
+
+  /// No description provided for @reminderFormTriggersRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one notification trigger'**
+  String get reminderFormTriggersRequired;
+
+  /// No description provided for @settingsBatteryOptimization.
+  ///
+  /// In en, this message translates to:
+  /// **'Background execution (battery)'**
+  String get settingsBatteryOptimization;
+
+  /// No description provided for @settingsBatteryOptimizationDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimized (reminders might be delayed)'**
+  String get settingsBatteryOptimizationDisabled;
+
+  /// No description provided for @settingsBatteryOptimizationEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrestricted (reliable execution)'**
+  String get settingsBatteryOptimizationEnabled;
+
+  /// No description provided for @settingsBatteryAlreadyAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'The app already has background execution allowed.'**
+  String get settingsBatteryAlreadyAllowed;
+
+  /// No description provided for @settingsPreciseAlarms.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Alarms'**
+  String get settingsPreciseAlarms;
+
+  /// No description provided for @settingsPreciseAlarmsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed (accurate reminders)'**
+  String get settingsPreciseAlarmsEnabled;
+
+  /// No description provided for @settingsPreciseAlarmsDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted (reminders may be delayed)'**
+  String get settingsPreciseAlarmsDisabled;
+
+  /// No description provided for @settingsPreciseAlarmsDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise Alarms Required'**
+  String get settingsPreciseAlarmsDialogTitle;
+
+  /// No description provided for @settingsPreciseAlarmsDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This application needs permission to schedule precise alarms to deliver notifications at the exact scheduled time. Tap Save to open system settings.'**
+  String get settingsPreciseAlarmsDialogBody;
+
+  /// No description provided for @dashboardSectionOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get dashboardSectionOverdue;
+
+  /// No description provided for @dashboardSectionThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get dashboardSectionThisWeek;
+
+  /// No description provided for @dashboardCalmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All clear'**
+  String get dashboardCalmTitle;
+
+  /// No description provided for @dashboardCalmHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing due in the next month.'**
+  String get dashboardCalmHint;
+
+  /// No description provided for @dashboardCalmNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get dashboardCalmNext;
+
+  /// No description provided for @dashboardShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String dashboardShowAll(int count);
+
+  /// No description provided for @settingsNotificationTimeAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add time'**
+  String get settingsNotificationTimeAdd;
+
+  /// No description provided for @settingsNotificationTimeAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select hour (0–23)'**
+  String get settingsNotificationTimeAddHint;
+
+  /// No description provided for @settingsNotificationTimesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification times'**
+  String get settingsNotificationTimesLabel;
+
+  /// No description provided for @settingsNotificationTimesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders will be sent at these times. Max 5.'**
+  String get settingsNotificationTimesHint;
+
+  /// No description provided for @settingsNotificationTimeAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This time is already added.'**
+  String get settingsNotificationTimeAlreadyExists;
+
+  /// No description provided for @settingsNotificationTimeAtLeastOne.
+  ///
+  /// In en, this message translates to:
+  /// **'At least one time must remain.'**
+  String get settingsNotificationTimeAtLeastOne;
+
+  /// No description provided for @permissionBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications may not be reliable'**
+  String get permissionBannerTitle;
+
+  /// No description provided for @permissionBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing permissions. Tap to fix in Settings.'**
+  String get permissionBannerBody;
+
+  /// No description provided for @permissionBannerFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix'**
+  String get permissionBannerFix;
+
+  /// No description provided for @settingsRomGuideTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manufacturer-specific setup'**
+  String get settingsRomGuideTitle;
+
+  /// No description provided for @settingsRomGuideSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Xiaomi, Huawei, Samsung, Oppo and others'**
+  String get settingsRomGuideSubtitle;
+
+  /// No description provided for @settingsRomGuideBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Some phones have extra battery protection that can block background reminders. Below are steps for the most common manufacturers:\n\n📱 Xiaomi / HyperOS\nSettings → Apps → Manage Apps → [This App] → Battery → No restrictions\nAlso: Settings → Apps → [This App] → Autostart → On\n\n📱 Huawei / Honor\nSettings → Apps → [This App] → Battery → App launch → Manage manually → Allow all\n\n📱 Samsung (One UI)\nSettings → Device Care → Battery → Background usage limits → remove this app from the list\n\n📱 Oppo / Realme (ColorOS)\nSettings → Battery → Battery Optimization → [This App] → Don\'t optimize\n\n📱 Vivo (FuntouchOS)\nSettings → Battery → High background power consumption → add this app'**
+  String get settingsRomGuideBody;
+
+  /// No description provided for @settingsRomGuideClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get settingsRomGuideClose;
+
+  /// No description provided for @importSelectRemindersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the reminders you want to add to your list:'**
+  String get importSelectRemindersHint;
+
+  /// No description provided for @importAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Import ({count})'**
+  String importAction(int count);
+
+  /// No description provided for @importSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Successfully imported {count} reminders'**
+  String importSuccess(int count);
+
+  /// No description provided for @importSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select reminders to import'**
+  String get importSelectTitle;
+
+  /// No description provided for @categoryCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get categoryCustom;
+
+  /// No description provided for @categoryDocumentsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'ID cards, passports, permits'**
+  String get categoryDocumentsDesc;
+
+  /// No description provided for @categoryCarDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'MOT, insurance, service'**
+  String get categoryCarDesc;
+
+  /// No description provided for @categoryHealthDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctors, check-ups, vaccines'**
+  String get categoryHealthDesc;
+
+  /// No description provided for @categoryFinanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxes, insurance, payments'**
+  String get categoryFinanceDesc;
+
+  /// No description provided for @categorySubscriptionsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Netflix, Spotify, subscriptions'**
+  String get categorySubscriptionsDesc;
+
+  /// No description provided for @categoryHomeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspections, filters, maintenance'**
+  String get categoryHomeDesc;
+
+  /// No description provided for @categoryDigitalDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Domains, certificates, licences'**
+  String get categoryDigitalDesc;
+
+  /// No description provided for @categoryPetsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Vet, vaccines, feeding'**
+  String get categoryPetsDesc;
+
+  /// No description provided for @categoryMaintenanceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Brushes, filters, cleaning'**
+  String get categoryMaintenanceDesc;
+
+  /// No description provided for @categoryCustomDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom reminders'**
+  String get categoryCustomDesc;
+
+  /// No description provided for @recurrenceCustomYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Every year} other{Every {count} years}}'**
+  String recurrenceCustomYears(int count);
+
+  /// No description provided for @recurrenceCustomWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Every week} other{Every {count} weeks}}'**
+  String recurrenceCustomWeeks(int count);
+
+  /// No description provided for @recurrenceCustomMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Every month} other{Every {count} months}}'**
+  String recurrenceCustomMonths(int count);
 }
 
 class _AppLocalizationsDelegate

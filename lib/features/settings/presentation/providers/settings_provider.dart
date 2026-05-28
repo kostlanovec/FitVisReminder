@@ -178,58 +178,83 @@ final appLockSessionProvider = NotifierProvider<AppLockSessionNotifier, bool>(
 
 class NotificationSettings {
   const NotificationSettings({
-    required this.scheduleHorizonMonths,
-    required this.maxTriggersPerReminder,
     required this.calendarSyncEnabled,
+    required this.notificationHours,
   });
 
-  final int scheduleHorizonMonths;
-  final int maxTriggersPerReminder;
   final bool calendarSyncEnabled;
+
+  /// Sorted list of hours (0–23) at which notifications fire each day.
+  /// Default: [9] (9 AM). Max 5.
+  final List<int> notificationHours;
+
+  /// Convenience getter used by background_handler which still reads a single
+  /// "preferred" hour (the first one in the list).
+  int get preferredNotificationHour =>
+      notificationHours.isEmpty ? 9 : notificationHours.first;
 }
 
 class NotificationSettingsNotifier extends Notifier<NotificationSettings> {
-  static const _horizonKey = 'notif_horizon_months';
-  static const _limitKey = 'notif_limit_per_reminder';
   static const _calendarSyncKey = 'notif_calendar_sync';
+  static const _notifHoursKey = 'notif_hours';   // comma-separated: "9,18"
+  static const _legacyHourKey = 'notif_preferred_hour';
 
   @override
   NotificationSettings build() {
     final prefs = ref.watch(sharedPreferencesProvider);
     return NotificationSettings(
-      scheduleHorizonMonths: prefs.getInt(_horizonKey) ?? 12,
-      maxTriggersPerReminder: prefs.getInt(_limitKey) ?? 1,
       calendarSyncEnabled: prefs.getBool(_calendarSyncKey) ?? false,
+      notificationHours: _loadHours(prefs),
     );
   }
 
-  Future<void> setHorizon(int months) async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setInt(_horizonKey, months);
-    state = NotificationSettings(
-      scheduleHorizonMonths: months,
-      maxTriggersPerReminder: state.maxTriggersPerReminder,
-      calendarSyncEnabled: state.calendarSyncEnabled,
-    );
-  }
-
-  Future<void> setLimit(int limit) async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setInt(_limitKey, limit);
-    state = NotificationSettings(
-      scheduleHorizonMonths: state.scheduleHorizonMonths,
-      maxTriggersPerReminder: limit,
-      calendarSyncEnabled: state.calendarSyncEnabled,
-    );
+  static List<int> _loadHours(dynamic prefs) {
+    // New key takes precedence
+    final stored = prefs.getString(_notifHoursKey);
+    if (stored != null && stored.isNotEmpty) {
+      final parsed = stored
+          .split(',')
+          .map((s) => int.tryParse(s.trim()))
+          .whereType<int>()
+          .where((h) => h >= 0 && h <= 23)
+          .toList()
+        ..sort();
+      if (parsed.isNotEmpty) return parsed;
+    }
+    // Migrate from legacy single-int key
+    final legacy = prefs.getInt(_legacyHourKey);
+    if (legacy != null) return [legacy];
+    return [9];
   }
 
   Future<void> setCalendarSync(bool enabled) async {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setBool(_calendarSyncKey, enabled);
     state = NotificationSettings(
-      scheduleHorizonMonths: state.scheduleHorizonMonths,
-      maxTriggersPerReminder: state.maxTriggersPerReminder,
       calendarSyncEnabled: enabled,
+      notificationHours: state.notificationHours,
+    );
+  }
+
+  Future<void> addHour(int hour) async {
+    if (state.notificationHours.contains(hour)) return;
+    if (state.notificationHours.length >= 5) return; // cap at 5
+    final updated = [...state.notificationHours, hour]..sort();
+    await _saveHours(updated);
+  }
+
+  Future<void> removeHour(int hour) async {
+    final updated = state.notificationHours.where((h) => h != hour).toList();
+    if (updated.isEmpty) return; // keep at least one
+    await _saveHours(updated);
+  }
+
+  Future<void> _saveHours(List<int> hours) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_notifHoursKey, hours.join(','));
+    state = NotificationSettings(
+      calendarSyncEnabled: state.calendarSyncEnabled,
+      notificationHours: hours,
     );
   }
 }

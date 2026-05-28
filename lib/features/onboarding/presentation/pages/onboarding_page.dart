@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:fit_vis_reminder/core/di/providers.dart';
 import 'package:fit_vis_reminder/core/theme/app_theme.dart';
 import 'package:fit_vis_reminder/core/utils/app_router.dart';
@@ -24,6 +25,29 @@ class _CustomEntry {
   _CustomEntry({required this.title, required this.category, required this.recurrence});
 }
 
+// ── Per-entity state configuration during onboarding ───────────────────────
+
+class _OnboardingEntityState {
+  final TextEditingController nameController;
+  final Set<String> selectedTemplateIds;
+  final Map<String, DateTime> lastDoneDates;
+  final Map<String, RecurrenceRule> customRecurrences;
+
+  _OnboardingEntityState({
+    required String name,
+    Set<String>? selectedTemplateIds,
+    Map<String, DateTime>? lastDoneDates,
+    Map<String, RecurrenceRule>? customRecurrences,
+  })  : nameController = TextEditingController(text: name),
+        selectedTemplateIds = selectedTemplateIds ?? {},
+        lastDoneDates = lastDoneDates ?? {},
+        customRecurrences = customRecurrences ?? {};
+
+  void dispose() {
+    nameController.dispose();
+  }
+}
+
 // ── Onboarding page ────────────────────────────────────────────────────────
 // Flow: Welcome → one page per category → Custom page
 
@@ -41,7 +65,31 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
 
   final Map<String, DateTime> _lastDoneDates = {};
   final Map<String, RecurrenceRule> _customRecurrences = {};
+  final Map<String, int> _templateCounts = {};  // How many of each template to create
+  final Map<String, List<TextEditingController>> _nameControllers = {};
   final List<_CustomEntry> _customEntries = [];
+
+  // Entity-based categories: user defines named entities once; every selected
+  // template in that category creates one reminder per entity.
+  static const _entityCategories = {
+    ReminderCategory.car,
+    ReminderCategory.pets,
+    ReminderCategory.home,   // každá nemovitost dostane vlastní sadu připomínek
+  };
+
+  // State for entity-based categories (Car, Pets, Home)
+  final Map<ReminderCategory, List<_OnboardingEntityState>> _categoryEntities = {
+    ReminderCategory.car: [_OnboardingEntityState(name: '')],
+    ReminderCategory.pets: [_OnboardingEntityState(name: '')],
+    ReminderCategory.home: [_OnboardingEntityState(name: '')],
+  };
+
+  // Currently active entity index for each category page
+  final Map<ReminderCategory, int> _activeEntityIndices = {
+    ReminderCategory.car: 0,
+    ReminderCategory.pets: 0,
+    ReminderCategory.home: 0,
+  };
 
   static const _categories = ReminderCategory.values;
   // pages: welcome + 8 categories + 1 custom page
@@ -57,12 +105,42 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   @override
   void dispose() {
     _pageController.dispose();
+    for (final ctrls in _nameControllers.values) {
+      for (final c in ctrls) c.dispose();
+    }
+    for (final list in _categoryEntities.values) {
+      for (final entity in list) {
+        entity.dispose();
+      }
+    }
     super.dispose();
+  }
+
+  void _onTemplateCountChanged(String id, int newCount) {
+    setState(() {
+      _templateCounts[id] = newCount;
+      final tpl = ref.read(templateDatasourceProvider).findById(id);
+      if (tpl?.supportsMultiple == true) {
+        final baseTitle = tpl!.title;
+        final existing = _nameControllers.putIfAbsent(
+          id,
+          () => [TextEditingController(text: baseTitle)],
+        );
+        // Grow the list if needed
+        while (existing.length < newCount) {
+          existing.add(TextEditingController(
+            text: '$baseTitle ${existing.length + 1}',
+          ));
+        }
+        // Don't shrink — keep controllers alive in case user goes back up
+      }
+    });
   }
 
   void _goNext() {
     if (_isLast) { _finish(); return; }
-    _pageController.nextPage(
+    _pageController.animateToPage(
+      _currentPage + 1,
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOutCubic,
     );
@@ -79,33 +157,120 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     if (_isSaving) return;
     setState(() => _isSaving = true);
 
+    // 1. Notification permission — must come first so the system dialog appears
+    //    before we attempt to schedule anything.
+    final notifService = ref.read(notificationServiceProvider);
+    final alreadyAllowed = await notifService.isAllowed();
+    if (!alreadyAllowed) {
+      await notifService.requestPermission();
+    }
+
+    // 2. Precise alarms (Android 12+) — required for on-time delivery.
+    //    Request silently; the system will show a dialog or open Special App Access.
+    try {
+      final exactStatus = await Permission.scheduleExactAlarm.status;
+      if (!exactStatus.isGranted) {
+        await Permission.scheduleExactAlarm.request();
+      }
+    } catch (_) {}
+
+    // 3. Battery optimization exemption — prevents the OS from delaying
+    //    background reschedules on aggressive-power-saving devices.
+    try {
+      final battStatus = await Permission.ignoreBatteryOptimizations.status;
+      if (!battStatus.isGranted) {
+        await Permission.ignoreBatteryOptimizations.request();
+      }
+    } catch (_) {}
+
+    final l = AppLocalizations.of(context)!;
     final selectedIds = ref.read(onboardingSelectionProvider);
     final templateDs = ref.read(templateDatasourceProvider);
     final notifier = ref.read(reminderNotifierProvider.notifier);
 
-    // Save template-based reminders
+    // Save non-entity template-based reminders
     for (final id in selectedIds) {
       final tpl = templateDs.findById(id);
       if (tpl == null) continue;
 
+      final isEntityCat = _entityCategories.contains(tpl.category);
+      if (isEntityCat) continue; // Handled separately below
+
       final lastDone = _lastDoneDates[id];
-      final dueDate = (lastDone != null && tpl.defaultRecurrence.isRecurring)
+      final baseDueDate = (lastDone != null && tpl.defaultRecurrence.isRecurring)
           ? tpl.defaultRecurrence.nextOccurrence(lastDone)
           : DateTime.now().add(Duration(days: tpl.recommendedIntervalDays ?? 365));
+      // Standard categories: use per-template count / name controllers
+      final count = _templateCounts[id] ?? 1;
+      final controllers = _nameControllers[id];
 
-      await notifier.saveReminder(Reminder(
-        id: 0,
-        title: tpl.title,
-        category: tpl.category,
-        dueDate: dueDate,
-        recurrenceRule: _customRecurrences[id] ?? tpl.defaultRecurrence,
-        triggers: tpl.defaultTriggers,
-        description: tpl.description,
-        templateId: tpl.id,
-        isActive: true,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ));
+      for (int idx = 0; idx < count; idx++) {
+        final rawName = (count > 1 && controllers != null && idx < controllers.length)
+            ? controllers[idx].text.trim()
+            : '';
+        final title = rawName.isNotEmpty
+            ? rawName
+            : (idx == 0 ? tpl.title : '${tpl.title} ${idx + 1}');
+        final dueDate = idx == 0
+            ? baseDueDate
+            : DateTime.now().add(Duration(days: tpl.recommendedIntervalDays ?? 365));
+
+        await notifier.saveReminder(Reminder(
+          id: 0,
+          title: title,
+          category: tpl.category,
+          dueDate: dueDate,
+          recurrenceRule: _customRecurrences[id] ?? tpl.defaultRecurrence,
+          triggers: tpl.defaultTriggers,
+          priority: tpl.priority,
+          description: tpl.description,
+          templateId: tpl.id,
+          isActive: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ), l);
+      }
+    }
+
+    // Save entity-based reminders
+    for (final cat in _entityCategories) {
+      final entities = _categoryEntities[cat] ?? [];
+      for (int i = 0; i < entities.length; i++) {
+        final entity = entities[i];
+        final rawEntityName = entity.nameController.text.trim();
+        final entityName = rawEntityName.isNotEmpty
+            ? rawEntityName
+            : _entityFallbackLabel(cat, i, l.localeName == 'cs');
+
+        // Only save if the user selected at least one template for this entity
+        if (entity.selectedTemplateIds.isEmpty) continue;
+
+        for (final tplId in entity.selectedTemplateIds) {
+          final tpl = templateDs.findById(tplId);
+          if (tpl == null) continue;
+
+          final lastDone = entity.lastDoneDates[tplId];
+          final recurrence = entity.customRecurrences[tplId] ?? tpl.defaultRecurrence;
+          final dueDate = (lastDone != null && recurrence.isRecurring)
+              ? recurrence.nextOccurrence(lastDone)
+              : DateTime.now().add(Duration(days: tpl.recommendedIntervalDays ?? 365));
+
+          await notifier.saveReminder(Reminder(
+            id: 0,
+            title: '${tpl.title} – $entityName',
+            category: cat,
+            dueDate: dueDate,
+            recurrenceRule: recurrence,
+            triggers: tpl.defaultTriggers,
+            priority: tpl.priority,
+            description: tpl.description,
+            templateId: tpl.id,
+            isActive: true,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ), l);
+        }
+      }
     }
 
     // Save custom reminders
@@ -124,7 +289,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
         isActive: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-      ));
+      ), l);
     }
 
     await completeOnboarding(ref);
@@ -162,10 +327,96 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       templates: grouped[cat] ?? [],
                       lastDoneDates: _lastDoneDates,
                       customRecurrences: _customRecurrences,
+                      templateCounts: _templateCounts,
+                      nameControllers: _nameControllers,
+                      onTemplateCountChanged: _onTemplateCountChanged,
                       onDatePicked: (id, date) =>
                           setState(() => _lastDoneDates[id] = date),
                       onRecurrencePicked: (id, rule) =>
                           setState(() => _customRecurrences[id] = rule),
+                      entities: _entityCategories.contains(cat) ? _categoryEntities[cat] : null,
+                      activeIndex: _entityCategories.contains(cat) ? _activeEntityIndices[cat] : null,
+                      onEntityNameChanged: () => setState(() {}),
+                      onActiveIndexChanged: _entityCategories.contains(cat)
+                          ? (idx) => setState(() => _activeEntityIndices[cat] = idx)
+                          : null,
+                      onEntityAdded: _entityCategories.contains(cat)
+                          ? () {
+                              setState(() {
+                                final list = _categoryEntities[cat]!;
+                                list.add(_OnboardingEntityState(name: ''));
+                                _activeEntityIndices[cat] = list.length - 1;
+                              });
+                            }
+                          : null,
+                      onEntityRemoved: _entityCategories.contains(cat)
+                          ? (idx) {
+                              setState(() {
+                                final list = _categoryEntities[cat]!;
+                                if (list.length > 1) {
+                                  list[idx].dispose();
+                                  list.removeAt(idx);
+                                  final currentActive = _activeEntityIndices[cat] ?? 0;
+                                  if (currentActive >= list.length) {
+                                    _activeEntityIndices[cat] = list.length - 1;
+                                  } else if (currentActive > 0 && idx <= currentActive) {
+                                    _activeEntityIndices[cat] = currentActive - 1;
+                                  }
+                                }
+                              });
+                            }
+                          : null,
+                      onEntityTemplateToggled: _entityCategories.contains(cat)
+                          ? (tplId) {
+                              setState(() {
+                                final activeIdx = _activeEntityIndices[cat] ?? 0;
+                                final entity = _categoryEntities[cat]![activeIdx];
+                                if (entity.selectedTemplateIds.contains(tplId)) {
+                                  entity.selectedTemplateIds.remove(tplId);
+                                } else {
+                                  entity.selectedTemplateIds.add(tplId);
+                                }
+                              });
+                            }
+                          : null,
+                      onEntityDatePicked: _entityCategories.contains(cat)
+                          ? (tplId, date) {
+                              setState(() {
+                                final activeIdx = _activeEntityIndices[cat] ?? 0;
+                                final entity = _categoryEntities[cat]![activeIdx];
+                                entity.lastDoneDates[tplId] = date;
+                              });
+                            }
+                          : null,
+                      onEntityRecurrencePicked: _entityCategories.contains(cat)
+                          ? (tplId, rule) {
+                              setState(() {
+                                final activeIdx = _activeEntityIndices[cat] ?? 0;
+                                final entity = _categoryEntities[cat]![activeIdx];
+                                entity.customRecurrences[tplId] = rule;
+                              });
+                            }
+                          : null,
+                      onEntityAllTemplatesCleared: _entityCategories.contains(cat)
+                          ? () {
+                              setState(() {
+                                final activeIdx = _activeEntityIndices[cat] ?? 0;
+                                final entity = _categoryEntities[cat]![activeIdx];
+                                entity.selectedTemplateIds.clear();
+                              });
+                            }
+                          : null,
+                      onEntityAllTemplatesSelected: _entityCategories.contains(cat)
+                          ? () {
+                              setState(() {
+                                final activeIdx = _activeEntityIndices[cat] ?? 0;
+                                final entity = _categoryEntities[cat]![activeIdx];
+                                for (final t in grouped[cat] ?? <ReminderTemplate>[]) {
+                                  entity.selectedTemplateIds.add(t.id);
+                                }
+                              });
+                            }
+                          : null,
                     ),
                   _CustomPage(
                     entries: _customEntries,
@@ -181,7 +432,6 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
               isSaving: _isSaving,
               currentCategory: _currentCategory,
               onNext: _goNext,
-              onSkip: (!_isWelcome && !_isLast) ? _goNext : null,
               l: l,
             ),
           ],
@@ -222,7 +472,7 @@ class _TopBar extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppRadius.xs),
                   child: LinearProgressIndicator(
                     value: progress,
                     backgroundColor: AppColors.borderLight,
@@ -248,7 +498,6 @@ class _BottomBar extends StatelessWidget {
     required this.isSaving,
     required this.currentCategory,
     required this.onNext,
-    required this.onSkip,
     required this.l,
   });
 
@@ -257,7 +506,6 @@ class _BottomBar extends StatelessWidget {
   final bool isSaving;
   final ReminderCategory? currentCategory;
   final VoidCallback onNext;
-  final VoidCallback? onSkip;
   final AppLocalizations l;
 
   String _nextLabel() {
@@ -282,47 +530,27 @@ class _BottomBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          children: [
-            if (onSkip != null)
-              Expanded(
-                flex: 2,
-                child: TextButton(
-                  onPressed: onSkip,
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: Text(l.onboardingSkip, maxLines: 1, overflow: TextOverflow.ellipsis),
+        child: FilledButton(
+          onPressed: isSaving ? null : onNext,
+          style: FilledButton.styleFrom(
+            backgroundColor: currentCategory?.color ?? AppColors.primary,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            minimumSize: const Size(double.infinity, 52),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+            elevation: 0,
+          ),
+          child: isSaving
+              ? const SizedBox(
+                  width: 20, height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : Text(
+                  _nextLabel(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              )
-            else
-              const Spacer(flex: 2),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 3,
-              child: FilledButton(
-                onPressed: isSaving ? null : onNext,
-                style: FilledButton.styleFrom(
-                  backgroundColor: currentCategory?.color ?? AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                ),
-                child: isSaving
-                    ? const SizedBox(
-                        width: 20, height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : Text(
-                        _nextLabel(),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -350,7 +578,7 @@ class _WelcomePage extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
             ),
             child: const Icon(Icons.verified_rounded, color: Colors.white, size: 52),
           ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
@@ -407,7 +635,7 @@ class _FeaturePill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.primary.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: AppColors.primary.withOpacity(0.15)),
       ),
       child: Row(
@@ -431,6 +659,20 @@ class _CategoryPage extends ConsumerWidget {
     required this.customRecurrences,
     required this.onDatePicked,
     required this.onRecurrencePicked,
+    required this.templateCounts,
+    required this.nameControllers,
+    required this.onTemplateCountChanged,
+    this.entities,
+    this.activeIndex,
+    this.onEntityNameChanged,
+    this.onActiveIndexChanged,
+    this.onEntityAdded,
+    this.onEntityRemoved,
+    this.onEntityTemplateToggled,
+    this.onEntityDatePicked,
+    this.onEntityRecurrencePicked,
+    this.onEntityAllTemplatesCleared,
+    this.onEntityAllTemplatesSelected,
   });
 
   final ReminderCategory category;
@@ -439,6 +681,22 @@ class _CategoryPage extends ConsumerWidget {
   final Map<String, RecurrenceRule> customRecurrences;
   final void Function(String id, DateTime date) onDatePicked;
   final void Function(String id, RecurrenceRule rule) onRecurrencePicked;
+  final Map<String, int> templateCounts;
+  final Map<String, List<TextEditingController>> nameControllers;
+  final void Function(String id, int count) onTemplateCountChanged;
+
+  // New parameters for entity configuration
+  final List<_OnboardingEntityState>? entities;
+  final int? activeIndex;
+  final VoidCallback? onEntityNameChanged;
+  final void Function(int)? onActiveIndexChanged;
+  final VoidCallback? onEntityAdded;
+  final void Function(int)? onEntityRemoved;
+  final void Function(String)? onEntityTemplateToggled;
+  final void Function(String, DateTime)? onEntityDatePicked;
+  final void Function(String, RecurrenceRule)? onEntityRecurrencePicked;
+  final VoidCallback? onEntityAllTemplatesCleared;
+  final VoidCallback? onEntityAllTemplatesSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -446,7 +704,17 @@ class _CategoryPage extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final selection = ref.watch(onboardingSelectionProvider);
     final notifier = ref.read(onboardingSelectionProvider.notifier);
-    final selectedInCat = templates.where((t) => selection.contains(t.id)).length;
+
+    final isEntityCat = entities != null && activeIndex != null;
+    final activeEntity = isEntityCat ? entities![activeIndex!] : null;
+
+    final selectedInCat = templates.where((t) {
+      if (isEntityCat) {
+        return activeEntity!.selectedTemplateIds.contains(t.id);
+      } else {
+        return selection.contains(t.id);
+      }
+    }).length;
 
     return CustomScrollView(
       slivers: [
@@ -462,7 +730,7 @@ class _CategoryPage extends ConsumerWidget {
                       width: 56, height: 56,
                       decoration: BoxDecoration(
                         color: category.color.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.card),
                       ),
                       child: Center(child: Text(category.emoji, style: const TextStyle(fontSize: 28))),
                     ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
@@ -472,13 +740,13 @@ class _CategoryPage extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            category.label,
+                            category.localizedLabel(l),
                             style: theme.textTheme.headlineSmall?.copyWith(
                               color: category.color, fontWeight: FontWeight.w700,
                             ),
                           ).animate().fadeIn(delay: 100.ms).slideX(begin: 0.1),
                           Text(
-                            category.description,
+                            category.localizedDescription(l),
                             style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
                           ).animate().fadeIn(delay: 180.ms),
                         ],
@@ -502,13 +770,22 @@ class _CategoryPage extends ConsumerWidget {
                     const Spacer(),
                     TextButton(
                       onPressed: () {
-                        if (selectedInCat == templates.length) {
-                          for (final t in templates) {
-                            if (selection.contains(t.id)) notifier.toggle(t.id);
+                        if (isEntityCat) {
+                          final allSelected = selectedInCat == templates.length;
+                          if (allSelected) {
+                            onEntityAllTemplatesCleared?.call();
+                          } else {
+                            onEntityAllTemplatesSelected?.call();
                           }
                         } else {
-                          for (final t in templates) {
-                            if (!selection.contains(t.id)) notifier.toggle(t.id);
+                          if (selectedInCat == templates.length) {
+                            for (final t in templates) {
+                              if (selection.contains(t.id)) notifier.toggle(t.id);
+                            }
+                          } else {
+                            for (final t in templates) {
+                              if (!selection.contains(t.id)) notifier.toggle(t.id);
+                            }
                           }
                         }
                       },
@@ -531,20 +808,88 @@ class _CategoryPage extends ConsumerWidget {
             ),
           ),
         ),
+        // Entity section — active entity card
+        if (isEntityCat)
+          SliverToBoxAdapter(
+            child: _ActiveEntityCard(
+              category: category,
+              entity: activeEntity!,
+              activeIndex: activeIndex!,
+              totalEntities: entities!.length,
+              onNameChanged: onEntityNameChanged,
+              onNavigate: onActiveIndexChanged,
+              onAdd: onEntityAdded,
+              onRemove: onEntityRemoved != null ? () => onEntityRemoved!(activeIndex!) : null,
+            ),
+          ),
+
         SliverList.builder(
           itemCount: templates.length,
           itemBuilder: (context, i) {
             final tpl = templates[i];
-            final isSelected = selection.contains(tpl.id);
-            return _TemplateTile(
-              template: tpl,
-              isSelected: isSelected,
-              lastDoneDate: lastDoneDates[tpl.id],
-              customRecurrence: customRecurrences[tpl.id],
-              onToggle: () => notifier.toggle(tpl.id),
-              onDatePicked: (date) => onDatePicked(tpl.id, date),
-              onRecurrencePicked: (rule) => onRecurrencePicked(tpl.id, rule),
-            ).animate(delay: Duration(milliseconds: 40 + i * 40)).fadeIn().slideY(begin: 0.08);
+            final isSelected = isEntityCat
+                ? activeEntity!.selectedTemplateIds.contains(tpl.id)
+                : selection.contains(tpl.id);
+            final count = templateCounts[tpl.id] ?? 1;
+            final ctrls = nameControllers[tpl.id];
+            final isCs = Localizations.localeOf(context).languageCode == 'cs';
+            final showQuantity = !isEntityCat;
+
+            return Column(
+              children: [
+                _TemplateTile(
+                  template: tpl,
+                  isSelected: isSelected,
+                  lastDoneDate: isEntityCat ? activeEntity!.lastDoneDates[tpl.id] : lastDoneDates[tpl.id],
+                  customRecurrence: isEntityCat ? activeEntity!.customRecurrences[tpl.id] : customRecurrences[tpl.id],
+                  onToggle: isEntityCat
+                      ? () => onEntityTemplateToggled?.call(tpl.id)
+                      : () => notifier.toggle(tpl.id),
+                  onDatePicked: isEntityCat
+                      ? (date) => onEntityDatePicked?.call(tpl.id, date)
+                      : (date) => onDatePicked(tpl.id, date),
+                  onRecurrencePicked: isEntityCat
+                      ? (rule) => onEntityRecurrencePicked?.call(tpl.id, rule)
+                      : (rule) => onRecurrencePicked(tpl.id, rule),
+                ).animate(delay: Duration(milliseconds: 40 + i * 40)).fadeIn().slideY(begin: 0.08),
+                // Only show quantity row for non-entity templates that support multiple instances
+                if (isSelected && tpl.supportsMultiple && showQuantity)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _QuantityRow(
+                          count: count,
+                          onChanged: (newCount) => onTemplateCountChanged(tpl.id, newCount),
+                        ),
+                        if (count > 1 && ctrls != null) ...[
+                          const SizedBox(height: 4),
+                          for (int idx = 0; idx < count && idx < ctrls.length; idx++)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: TextField(
+                                controller: ctrls[idx],
+                                decoration: InputDecoration(
+                                  labelText: isCs
+                                      ? 'Název ${idx + 1}'
+                                      : 'Name ${idx + 1}',
+                                  isDense: true,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ],
+                    ),
+                  ),
+              ],
+            );
           },
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
@@ -581,7 +926,7 @@ class _CustomPage extends StatelessWidget {
                       width: 56, height: 56,
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.card),
                       ),
                       child: const Center(child: Icon(Icons.add_rounded, size: 30, color: AppColors.primary)),
                     ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
@@ -621,7 +966,7 @@ class _CustomPage extends StatelessWidget {
               return ListTile(
                 leading: Text(e.category.emoji, style: const TextStyle(fontSize: 22)),
                 title: Text(e.title),
-                subtitle: Text(e.recurrence.humanLabel, style: const TextStyle(fontSize: 12)),
+                subtitle: Text(e.recurrence.humanLabelLocalized(AppLocalizations.of(context)!), style: const TextStyle(fontSize: 12)),
                 trailing: IconButton(
                   icon: const Icon(Icons.close_rounded, size: 18),
                   onPressed: () => onRemove(i),
@@ -642,7 +987,7 @@ class _CustomPage extends StatelessWidget {
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.primary, width: 1.5),
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                 minimumSize: const Size(double.infinity, 52),
               ),
             ),
@@ -685,7 +1030,7 @@ class _CustomPage extends StatelessWidget {
                 children: ReminderCategory.values.map((cat) {
                   final sel = selectedCat == cat;
                   return FilterChip(
-                    label: Text('${cat.emoji} ${cat.label}', style: const TextStyle(fontSize: 11)),
+                    label: Text('${cat.emoji} ${cat.localizedLabel(l)}', style: const TextStyle(fontSize: 11)),
                     selected: sel,
                     onSelected: (_) => setDlgState(() => selectedCat = cat),
                     selectedColor: cat.color.withOpacity(0.15),
@@ -747,9 +1092,228 @@ class _CustomPage extends StatelessWidget {
   }
 }
 
+// ── Entity section (Car / Pets / Home / …) ────────────────────────────────
+
+class _ActiveEntityCard extends StatelessWidget {
+  const _ActiveEntityCard({
+    required this.category,
+    required this.entity,
+    required this.activeIndex,
+    required this.totalEntities,
+    this.onNameChanged,
+    this.onNavigate,
+    this.onAdd,
+    this.onRemove,
+  });
+
+  final ReminderCategory category;
+  final _OnboardingEntityState entity;
+  final int activeIndex;
+  final int totalEntities;
+  final VoidCallback? onNameChanged;
+  final void Function(int)? onNavigate;
+  final VoidCallback? onAdd;
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isCs = Localizations.localeOf(context).languageCode == 'cs';
+
+    final (label, hint, navLabel, icon) = switch (category) {
+      ReminderCategory.car => (
+          isCs ? 'Název vozidla' : 'Vehicle name',
+          isCs ? 'např. Škoda Octavia' : 'e.g. Toyota Camry',
+          isCs ? 'Auto' : 'Vehicle',
+          Icons.directions_car_rounded,
+        ),
+      ReminderCategory.pets => (
+          isCs ? 'Jméno mazlíčka' : 'Pet name',
+          isCs ? 'např. Max' : 'e.g. Buddy',
+          isCs ? 'Mazlíček' : 'Pet',
+          Icons.pets_rounded,
+        ),
+      ReminderCategory.home => (
+          isCs ? 'Název nemovitosti' : 'Property name',
+          isCs ? 'např. Byt Praha 2' : 'e.g. Main apartment',
+          isCs ? 'Nemovitost' : 'Property',
+          Icons.home_rounded,
+        ),
+      _ => (
+          isCs ? 'Název' : 'Name',
+          isCs ? 'např. Položka 1' : 'e.g. Item 1',
+          isCs ? 'Položka' : 'Item',
+          Icons.info_outline_rounded,
+        ),
+    };
+
+    final isCs_z = isCs ? 'z' : 'of';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      decoration: BoxDecoration(
+        color: category.color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: category.color.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 20, color: category.color),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: category.color,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              if (totalEntities > 1 && onRemove != null)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.accentRed),
+                  onPressed: onRemove,
+                  tooltip: isCs ? 'Odstranit' : 'Delete',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  style: IconButton.styleFrom(
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: entity.nameController,
+            onChanged: (_) => onNameChanged?.call(),
+            decoration: InputDecoration(
+              hintText: hint,
+              isDense: true,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                borderSide: BorderSide(color: category.color.withOpacity(0.3)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                borderSide: BorderSide(color: category.color, width: 1.5),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16, vertical: 14,
+              ),
+            ),
+            textCapitalization: TextCapitalization.sentences,
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                onPressed: activeIndex > 0 ? () => onNavigate?.call(activeIndex - 1) : null,
+                style: IconButton.styleFrom(
+                  foregroundColor: category.color,
+                  disabledForegroundColor: AppColors.textSecondary.withOpacity(0.3),
+                  backgroundColor: category.color.withOpacity(0.08),
+                  disabledBackgroundColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                ),
+              ),
+              Text(
+                '$navLabel ${activeIndex + 1} $isCs_z $totalEntities',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: category.color,
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (activeIndex < totalEntities - 1)
+                    IconButton(
+                      icon: const Icon(Icons.arrow_forward_ios_rounded, size: 18),
+                      onPressed: () => onNavigate?.call(activeIndex + 1),
+                      style: IconButton.styleFrom(
+                        foregroundColor: category.color,
+                        backgroundColor: category.color.withOpacity(0.08),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                      ),
+                    )
+                  else if (onAdd != null)
+                    TextButton.icon(
+                      onPressed: onAdd,
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: Text(
+                        isCs ? 'Přidat' : 'Add',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: category.color,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Template tile ──────────────────────────────────────────────────────────
 
-class _TemplateTile extends StatelessWidget {
+/// Fallback label for an entity when the user hasn't typed a name yet.
+String _entityFallbackLabel(ReminderCategory cat, int idx, bool isCs) {
+  return switch (cat) {
+    ReminderCategory.car  => isCs ? 'Vozidlo ${idx + 1}'    : 'Vehicle ${idx + 1}',
+    ReminderCategory.pets => isCs ? 'Mazlíček ${idx + 1}'   : 'Pet ${idx + 1}',
+    ReminderCategory.home => isCs ? 'Nemovitost ${idx + 1}' : 'Property ${idx + 1}',
+    _                     => isCs ? 'Položka ${idx + 1}'    : 'Item ${idx + 1}',
+  };
+}
+
+int _ruleToMonths(RecurrenceRule rule) {
+  if (rule.intervalMonths != null) return rule.intervalMonths!;
+  if (rule.intervalYears != null) return rule.intervalYears! * 12;
+  if (rule.intervalDays != null) return (rule.intervalDays! / 30).round().clamp(1, 999);
+  return 12;
+}
+
+String _monthLabel(int m, bool isCs) {
+  final years = m / 12;
+  if (m % 12 == 0) {
+    if (isCs) {
+      if (years == 1) return '1 rok';
+      if (years < 5) return '${years.toInt()} roky';
+      return '${years.toInt()} let';
+    }
+    return years == 1 ? '1 year' : '${years.toInt()} years';
+  }
+  if (isCs) {
+    if (m == 1) return '1 měsíc';
+    if (m < 5) return '$m měsíce';
+    return '$m měsíců';
+  }
+  return m == 1 ? '1 month' : '$m months';
+}
+
+class _TemplateTile extends StatefulWidget {
   const _TemplateTile({
     required this.template,
     required this.isSelected,
@@ -759,7 +1323,7 @@ class _TemplateTile extends StatelessWidget {
     required this.onDatePicked,
     required this.onRecurrencePicked,
   });
- 
+
   final ReminderTemplate template;
   final bool isSelected;
   final DateTime? lastDoneDate;
@@ -769,41 +1333,79 @@ class _TemplateTile extends StatelessWidget {
   final void Function(RecurrenceRule) onRecurrencePicked;
 
   @override
+  State<_TemplateTile> createState() => _TemplateTileState();
+}
+
+class _TemplateTileState extends State<_TemplateTile> {
+  late final TextEditingController _customCtrl;
+  bool _showCustomInput = false;
+  RecurrenceUnit _customUnit = RecurrenceUnit.months;
+
+  @override
+  void initState() {
+    super.initState();
+    final months = _ruleToMonths(widget.customRecurrence ?? widget.template.defaultRecurrence);
+    _customCtrl = TextEditingController(text: months.toString());
+  }
+
+  @override
+  void dispose() {
+    _customCtrl.dispose();
+    super.dispose();
+  }
+
+  List<int> _buildOptions() {
+    final defaultM = _ruleToMonths(widget.template.defaultRecurrence);
+    final options = [6, 12, 24, 36, 60];
+    if (!options.contains(defaultM)) {
+      options.add(defaultM);
+      options.sort();
+    }
+    return options;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final l = AppLocalizations.of(context)!;
-    final cat = template.category;
+    final cat = widget.template.category;
+    final isCs = Localizations.localeOf(context).languageCode == 'cs';
+
+    final currentRule = widget.customRecurrence ?? widget.template.defaultRecurrence;
+    final currentMonths = _ruleToMonths(currentRule);
+    final options = _buildOptions();
+    final isCustomSelected = !options.contains(currentMonths);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
-          color: isSelected ? cat.color.withOpacity(isDark ? 0.12 : 0.07) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
+          color: widget.isSelected ? cat.color.withOpacity(isDark ? 0.12 : 0.07) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: isSelected ? cat.color.withOpacity(0.4) : Colors.transparent,
+            color: widget.isSelected ? cat.color.withOpacity(0.4) : Colors.transparent,
           ),
         ),
         child: Column(
           children: [
             InkWell(
-              onTap: onToggle,
-              borderRadius: BorderRadius.circular(14),
+              onTap: widget.onToggle,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Row(
                   children: [
-                    Text(template.icon, style: const TextStyle(fontSize: 22)),
+                    Text(widget.template.icon, style: const TextStyle(fontSize: 22)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(template.title,
+                          Text(widget.template.title,
                               style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                          Text(template.defaultRecurrence.humanLabel,
+                          Text(widget.template.defaultRecurrence.humanLabelLocalized(AppLocalizations.of(context)!),
                               style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
                         ],
                       ),
@@ -813,14 +1415,14 @@ class _TemplateTile extends StatelessWidget {
                       duration: const Duration(milliseconds: 180),
                       width: 24, height: 24,
                       decoration: BoxDecoration(
-                        color: isSelected ? cat.color : Colors.transparent,
+                        color: widget.isSelected ? cat.color : Colors.transparent,
                         border: Border.all(
-                          color: isSelected ? cat.color : AppColors.borderLight,
+                          color: widget.isSelected ? cat.color : AppColors.borderLight,
                           width: 2,
                         ),
-                        borderRadius: BorderRadius.circular(7),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
-                      child: isSelected
+                      child: widget.isSelected
                           ? const Icon(Icons.check_rounded, size: 15, color: Colors.white)
                           : null,
                     ),
@@ -828,85 +1430,204 @@ class _TemplateTile extends StatelessWidget {
                 ),
               ),
             ),
-            if (isSelected)
+            if (widget.isSelected)
               Padding(
-                padding: const EdgeInsets.fromLTRB(48, 0, 14, 12),
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (template.onboardingQuestion != null) ...[
-                      Text(template.onboardingQuestion!,
+                    if (widget.template.onboardingQuestion != null) ...[
+                      Text(widget.template.onboardingQuestion!,
                           style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
                       const SizedBox(height: 6),
-                      _DateButton(selectedDate: lastDoneDate, color: cat.color, onPick: onDatePicked),
+                      _DateButton(selectedDate: widget.lastDoneDate, color: cat.color, onPick: widget.onDatePicked),
                       const SizedBox(height: 12),
                     ],
                     Text(l.onboardingFrequencyLabel,
-                        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary)),
-                    const SizedBox(height: 6),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: () {
-                          final defaultMonths = template.defaultRecurrence.intervalMonths ?? 12;
-                          final baseOptions = [6, 12, 24, 36, 60];
-                          if (!baseOptions.contains(defaultMonths)) {
-                            baseOptions.add(defaultMonths);
-                            baseOptions.sort();
-                          }
-                          
-                          return baseOptions.map((m) {
-                            final rule = RecurrenceRule.customMonths(months: m);
-                            final current = customRecurrence ?? template.defaultRecurrence;
-                            final isSelected = current.intervalMonths == m;
-                            final isDefault = defaultMonths == m;
-                            
-                            String label;
-                            final years = m / 12;
-                            final isCs = Localizations.localeOf(context).languageCode == 'cs';
-                            
-                            if (m % 12 == 0) {
-                              if (isCs) {
-                                if (years == 1) label = "1 rok";
-                                else if (years < 5) label = "${years.toInt()} roky";
-                                else label = "${years.toInt()} let";
-                              } else {
-                                label = years == 1 ? "1 year" : "${years.toInt()} years";
-                              }
-                            } else {
-                              if (isCs) {
-                                if (m == 1) label = "1 měsíc";
-                                else if (m < 5) label = "$m měsíce";
-                                else label = "$m měsíců";
-                              } else {
-                                label = m == 1 ? "1 month" : "$m months";
-                              }
-                            }
-                            
-                            if (isDefault) label += " ${l.onboardingRecommended}";
-
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: ChoiceChip(
-                                label: Text(label, style: const TextStyle(fontSize: 11)),
-                                selected: isSelected,
-                                onSelected: (_) => onRecurrencePicked(rule),
-                                selectedColor: cat.color.withOpacity(0.2),
-                                labelStyle: TextStyle(
-                                  color: isSelected ? cat.color : null,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    ...options.map((m) {
+                      final isSel = currentMonths == m && !isCustomSelected;
+                      return InkWell(
+                        onTap: () {
+                          setState(() => _showCustomInput = false);
+                          widget.onRecurrencePicked(RecurrenceRule.customMonths(months: m));
+                        },
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _monthLabel(m, isCs),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: isSel ? FontWeight.w600 : FontWeight.w400,
+                                    color: isSel ? cat.color : null,
+                                  ),
                                 ),
                               ),
-                            );
-                          }).toList();
-                        }(),
+                              if (isSel) Icon(Icons.check_rounded, size: 18, color: cat.color),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    InkWell(
+                      onTap: () {
+                        setState(() => _showCustomInput = true);
+                        if (isCustomSelected) {
+                          _customCtrl.text = currentMonths.toString();
+                        } else {
+                          _customCtrl.text = '';
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l.reminderCustomLabel,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: isCustomSelected ? FontWeight.w600 : FontWeight.w400,
+                                  color: isCustomSelected ? cat.color : null,
+                                ),
+                              ),
+                            ),
+                            if (isCustomSelected) Icon(Icons.check_rounded, size: 18, color: cat.color),
+                          ],
+                        ),
                       ),
                     ),
+                    if (_showCustomInput || isCustomSelected) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _customCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: isCs ? 'Počet' : 'Count',
+                                isDense: true,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+                              ),
+                              onChanged: (v) {
+                                final n = int.tryParse(v) ?? 1;
+                                if (n > 0) {
+                                  widget.onRecurrencePicked(
+                                    RecurrenceRule.custom(frequency: n, unit: _customUnit),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          DropdownButton<RecurrenceUnit>(
+                            value: _customUnit,
+                            underline: const SizedBox(),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            items: [
+                              DropdownMenuItem(
+                                value: RecurrenceUnit.days,
+                                child: Text(isCs ? 'Dny' : 'Days'),
+                              ),
+                              DropdownMenuItem(
+                                value: RecurrenceUnit.weeks,
+                                child: Text(isCs ? 'Týdny' : 'Weeks'),
+                              ),
+                              DropdownMenuItem(
+                                value: RecurrenceUnit.months,
+                                child: Text(isCs ? 'Měsíce' : 'Months'),
+                              ),
+                              DropdownMenuItem(
+                                value: RecurrenceUnit.years,
+                                child: Text(isCs ? 'Roky' : 'Years'),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) {
+                                setState(() => _customUnit = v);
+                                final n = int.tryParse(_customCtrl.text) ?? 1;
+                                widget.onRecurrencePicked(
+                                  RecurrenceRule.custom(frequency: n, unit: v),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Quantity row (for multiple instances of same template) ──────────────────
+
+class _QuantityRow extends StatelessWidget {
+  const _QuantityRow({required this.count, required this.onChanged});
+  final int count;
+  final void Function(int) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final isCs = Localizations.localeOf(context).languageCode == 'cs';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Text(
+            isCs ? 'Počet' : 'Quantity',
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          IconButton.filled(
+            icon: const Icon(Icons.remove_rounded, size: 18),
+            onPressed: count > 1 ? () => onChanged(count - 1) : null,
+            style: IconButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: count > 1 ? AppColors.primary : AppColors.borderLight,
+              minimumSize: const Size(36, 36),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          IconButton.filled(
+            icon: const Icon(Icons.add_rounded, size: 18),
+            onPressed: count < 5 ? () => onChanged(count + 1) : null,
+            style: IconButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: count < 5 ? AppColors.primary : AppColors.borderLight,
+              minimumSize: const Size(36, 36),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -930,12 +1651,12 @@ class _DateButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => _pick(context),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
           border: Border.all(color: color.withOpacity(0.25)),
         ),
         child: Row(

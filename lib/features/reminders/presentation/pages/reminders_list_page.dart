@@ -6,6 +6,7 @@ import 'package:fit_vis_reminder/core/theme/app_theme.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
 import 'package:fit_vis_reminder/features/reminders/data/services/sharing_service.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_category.dart';
+import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_priority.dart';
 import 'package:fit_vis_reminder/features/reminders/presentation/providers/reminders_provider.dart';
 import 'package:fit_vis_reminder/shared/widgets/reminder_card.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -146,7 +147,7 @@ class RemindersListPage extends ConsumerWidget {
                 final upcoming = filtered.where((r) => !r.isOverdue).toList();
 
                 return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.sm, AppSpacing.page, 100),
                   sliver: SliverList.builder(
                     itemCount: (overdue.isNotEmpty ? overdue.length + 1 : 0) +
                         (upcoming.isNotEmpty ? upcoming.length + 1 : 0),
@@ -172,7 +173,9 @@ class RemindersListPage extends ConsumerWidget {
                             onTap: () => context.push(AppRoutes.reminderDetailPath(r.id)),
                             onDone: () => _markDoneWithUndo(context, ref, r, l),
                             onDelete: () => ref.read(reminderNotifierProvider.notifier).deleteReminder(r.id),
-                            onLongPress: () => _enterSelection(ref, r.id),
+                            onLongPress: selectionMode
+                                ? () => _enterSelection(ref, r.id)
+                                : () => _showSnoozeMenu(context, ref, r, l),
                             onToggle: () => _toggleSelection(ref, r.id, selectedIds),
                           );
                         }
@@ -197,7 +200,9 @@ class RemindersListPage extends ConsumerWidget {
                           onTap: () => context.push(AppRoutes.reminderDetailPath(r.id)),
                           onDone: () => _markDoneWithUndo(context, ref, r, l),
                           onDelete: () => ref.read(reminderNotifierProvider.notifier).deleteReminder(r.id),
-                          onLongPress: () => _enterSelection(ref, r.id),
+                          onLongPress: selectionMode
+                              ? () => _enterSelection(ref, r.id)
+                              : () => _showSnoozeMenu(context, ref, r, l),
                           onToggle: () => _toggleSelection(ref, r.id, selectedIds),
                         );
                       }
@@ -223,20 +228,71 @@ class RemindersListPage extends ConsumerWidget {
   }
 
   void _markDoneWithUndo(BuildContext context, WidgetRef ref, Reminder reminder, AppLocalizations l) async {
+    final original = reminder; // capture state before mutation
     await ref.read(reminderNotifierProvider.notifier).markDone(reminder, l);
     if (!context.mounted) return;
-    
+
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l.reminderDetailMarkDone),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
         action: SnackBarAction(
           label: l.buttonCancel.toUpperCase(),
           onPressed: () {
-            // Placeholder for undo
+            ref.read(reminderNotifierProvider.notifier).undoMarkDone(original, l);
           },
+        ),
+      ),
+    );
+  }
+
+  void _showSnoozeMenu(BuildContext context, WidgetRef ref, Reminder reminder, AppLocalizations l) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.borderLight,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.check_box_outline_blank_rounded),
+              title: Text(l.reminderListContextSelect),
+              onTap: () {
+                Navigator.pop(ctx);
+                _enterSelection(ref, reminder.id);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.snooze_rounded),
+              title: Text(l.reminderDetailSnooze),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await ref.read(reminderNotifierProvider.notifier).snoozeReminder(reminder, l, days: 7);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.calendar_month_rounded),
+              title: Text(l.reminderSnoozeMonth),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await ref.read(reminderNotifierProvider.notifier).snoozeReminder(reminder, l, days: 30);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
       ),
     );
@@ -286,7 +342,6 @@ class _SelectableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     Widget card = Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GestureDetector(
@@ -305,7 +360,7 @@ class _SelectableCard extends StatelessWidget {
                   duration: const Duration(milliseconds: 180),
                   decoration: BoxDecoration(
                     color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(AppRadius.xl),
                     border: isSelected
                         ? Border.all(color: AppColors.primary, width: 2)
                         : Border.all(color: Colors.transparent, width: 2),
@@ -346,18 +401,34 @@ class _SelectableCard extends StatelessWidget {
 
     return Dismissible(
       key: Key('rem_${reminder.id}'),
-      direction: DismissDirection.endToStart,
+      direction: DismissDirection.horizontal,
       background: Container(
+        alignment: Alignment.centerLeft,
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(left: 24),
+        decoration: BoxDecoration(
+          color: AppColors.accentGreen.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(AppRadius.card),
+        ),
+        child: const Icon(Icons.check_rounded, color: Colors.white, size: 28),
+      ),
+      secondaryBackground: Container(
         alignment: Alignment.centerRight,
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.only(right: 24),
         decoration: BoxDecoration(
           color: AppColors.accentRed.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.card),
         ),
         child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
       ),
-      onDismissed: (_) => onDelete(),
+      onDismissed: (direction) {
+        if (direction == DismissDirection.startToEnd) {
+          onDone();
+        } else {
+          onDelete();
+        }
+      },
       child: card,
     );
   }
@@ -415,7 +486,7 @@ class _BulkActionBar extends StatelessWidget {
                   foregroundColor: AppColors.accentRed,
                   side: const BorderSide(color: AppColors.accentRed),
                   minimumSize: const Size(0, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
                 ),
               ),
             ),
@@ -432,7 +503,7 @@ class _BulkActionBar extends StatelessWidget {
               tooltip: l.buttonShare,
               style: IconButton.styleFrom(
                 minimumSize: const Size(48, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
               ),
             ),
             const SizedBox(width: 8),
@@ -452,7 +523,7 @@ class _BulkActionBar extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accentGreen,
                   minimumSize: const Size(0, 48),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
                 ),
               ),
             ),
@@ -466,7 +537,7 @@ class _BulkActionBar extends StatelessWidget {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xl)),
         title: Text(l.selectionDeleteConfirm(count)),
         content: Text(l.selectionDeleteHint),
         actions: [
@@ -489,16 +560,17 @@ class _SearchDelegate extends SliverPersistentHeaderDelegate {
   final String hint;
   final void Function(String) onChanged;
 
+  // 8 top-padding + 48 SearchField + 8 bottom-padding = 64 px
   @override
-  double get minExtent => 68;
+  double get minExtent => 64;
   @override
-  double get maxExtent => 68;
+  double get maxExtent => 64;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: isDark ? AppColors.backgroundDark : AppColors.background,
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.sm, AppSpacing.page, AppSpacing.sm),
       child: _SearchField(hint: hint, onChanged: onChanged, isDark: isDark),
     );
   }
@@ -533,7 +605,7 @@ class _SearchFieldState extends State<_SearchField> {
       height: 48,
       decoration: BoxDecoration(
         color: widget.isDark ? AppColors.cardDarkElevated : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
           color: widget.isDark ? AppColors.borderDark : AppColors.borderLight.withOpacity(0.5),
         ),
@@ -606,14 +678,15 @@ class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       color: isDark ? AppColors.backgroundDark : AppColors.background,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.sm, AppSpacing.page, AppSpacing.sm),
         children: [
           FilterChip(
-            label: Text(AppLocalizations.of(context)!.filterHighPriority),
+            label: Text(l.filterHighPriority),
             selected: onlyHighPriority,
             onSelected: (_) => onTogglePriority(),
             selectedColor: AppColors.accentRed.withOpacity(0.15),
@@ -631,7 +704,7 @@ class _FilterBarDelegate extends SliverPersistentHeaderDelegate {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: ChoiceChip(
-                label: Text('${cat.emoji} ${cat.label}'),
+                label: Text('${cat.emoji} ${cat.localizedLabel(l)}'),
                 selected: isSelected,
                 onSelected: (_) => onSelectCategory(cat),
                 selectedColor: cat.color.withOpacity(0.12),
@@ -693,7 +766,7 @@ class _GroupHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: color.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppRadius.xs),
             ),
             child: Text(
               count.toString(),

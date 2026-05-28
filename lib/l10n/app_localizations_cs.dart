@@ -198,6 +198,12 @@ class AppLocalizationsCs extends AppLocalizations {
   String get reminderFormFieldNotifications => 'Upozornění';
 
   @override
+  String get reminderFormBasicInfo => 'Základní informace';
+
+  @override
+  String get reminderFormRecurrenceSection => 'Opakování';
+
+  @override
   String get reminderFormTemplateSection => 'Šablona (volitelné)';
 
   @override
@@ -222,8 +228,15 @@ class AppLocalizationsCs extends AppLocalizations {
   String get recurrenceYearly => 'Každý rok';
 
   @override
-  String recurrenceCustomDays(int days) {
-    return 'Každých $days dní';
+  String recurrenceCustomDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Každých $count dní',
+      few: 'Každé $count dny',
+      one: 'Každý den',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -290,6 +303,19 @@ class AppLocalizationsCs extends AppLocalizations {
   String get settingsRescheduleAll => 'Přeplánovat vše';
 
   @override
+  String settingsRescheduleResult(int count) {
+    return 'Naplánováno $count upozornění';
+  }
+
+  @override
+  String get settingsNotificationTime => 'Čas notifikací';
+
+  @override
+  String settingsNotificationTimeValue(int hour) {
+    return 'Notifikace v $hour:00';
+  }
+
+  @override
   String get settingsCancelAll => 'Zrušit vše';
 
   @override
@@ -308,7 +334,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get settingsVersion => 'Verze';
 
   @override
-  String get categoryDocuments => 'Dokumenty';
+  String get categoryDocuments => 'Doklady';
 
   @override
   String get categoryCar => 'Auto';
@@ -323,16 +349,16 @@ class AppLocalizationsCs extends AppLocalizations {
   String get categorySubscriptions => 'Předplatné';
 
   @override
-  String get categoryHome => 'Domov';
+  String get categoryHome => 'Domácnost';
 
   @override
-  String get categoryDigital => 'Digitální';
+  String get categoryDigital => 'Digitální život';
 
   @override
   String get categoryPets => 'Mazlíčci';
 
   @override
-  String get categoryMaintenance => 'Údržba';
+  String get categoryMaintenance => 'Pravidelná údržba';
 
   @override
   String get buttonAdd => 'Přidat';
@@ -393,6 +419,14 @@ class AppLocalizationsCs extends AppLocalizations {
   String get reminderCustomYears => 'Počet let';
 
   @override
+  String get reminderCustomWeeks => 'Týdny';
+
+  @override
+  String reminderTriggerCustomDays(int days) {
+    return '$days dní předem (Vlastní)';
+  }
+
+  @override
   String get reminderCustomLabel => 'Vlastní';
 
   @override
@@ -406,6 +440,12 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get reminderDetailSnooze => 'Odložit o týden';
+
+  @override
+  String get reminderSnoozeMonth => 'Odložit o měsíc';
+
+  @override
+  String get reminderListContextSelect => 'Vybrat';
 
   @override
   String reminderDetailSnoozed(String date) {
@@ -714,4 +754,207 @@ class AppLocalizationsCs extends AppLocalizations {
   @override
   String get settingsCalendarSyncHint =>
       'Automaticky přidávat termíny do systémového kalendáře';
+
+  @override
+  String get buttonShare => 'Sdílet';
+
+  @override
+  String selectionShare(Object count) {
+    return 'Sdílet ($count)';
+  }
+
+  @override
+  String get dashboardSectionUpcoming => 'Nadcházející';
+
+  @override
+  String get dashboardNothingUpcoming => 'Nic nadcházejícího';
+
+  @override
+  String get reminderFormTriggersSection => 'Upozornění';
+
+  @override
+  String get reminderFormTriggersRequired => 'Vyberte alespoň jedno upozornění';
+
+  @override
+  String get settingsBatteryOptimization => 'Běh na pozadí (baterie)';
+
+  @override
+  String get settingsBatteryOptimizationDisabled =>
+      'Optimalizováno (může zpozdit připomínky)';
+
+  @override
+  String get settingsBatteryOptimizationEnabled =>
+      'Bez omezení (spolehlivý běh)';
+
+  @override
+  String get settingsBatteryAlreadyAllowed =>
+      'Aplikace má již povolen spolehlivý běh na pozadí.';
+
+  @override
+  String get settingsPreciseAlarms => 'Přesné budíky';
+
+  @override
+  String get settingsPreciseAlarmsEnabled => 'Povoleno (přesné doručování)';
+
+  @override
+  String get settingsPreciseAlarmsDisabled =>
+      'Nepovoleno (upozornění se mohou zpozdit)';
+
+  @override
+  String get settingsPreciseAlarmsDialogTitle => 'Vyžadovány přesné budíky';
+
+  @override
+  String get settingsPreciseAlarmsDialogBody =>
+      'Tato aplikace potřebuje povolení pro přesné budíky, aby mohla doručovat notifikace přesně na čas. Klikněte na Uložit a povolte je v nastavení systému.';
+
+  @override
+  String get dashboardSectionOverdue => 'Prošlé';
+
+  @override
+  String get dashboardSectionThisWeek => 'Tento týden';
+
+  @override
+  String get dashboardCalmTitle => 'Vše v pořádku';
+
+  @override
+  String get dashboardCalmHint => 'V příštím měsíci žádné blížící se termíny.';
+
+  @override
+  String get dashboardCalmNext => 'Příště';
+
+  @override
+  String dashboardShowAll(int count) {
+    return 'Zobrazit vše ($count)';
+  }
+
+  @override
+  String get settingsNotificationTimeAdd => 'Přidat čas';
+
+  @override
+  String get settingsNotificationTimeAddHint => 'Vyberte hodinu (0–23)';
+
+  @override
+  String get settingsNotificationTimesLabel => 'Časy notifikací';
+
+  @override
+  String get settingsNotificationTimesHint =>
+      'Připomínky budou zaslány v tyto časy. Max 5.';
+
+  @override
+  String get settingsNotificationTimeAlreadyExists =>
+      'Tento čas je již přidán.';
+
+  @override
+  String get settingsNotificationTimeAtLeastOne =>
+      'Musí zůstat alespoň jeden čas.';
+
+  @override
+  String get permissionBannerTitle => 'Notifikace nemusí fungovat spolehlivě';
+
+  @override
+  String get permissionBannerBody =>
+      'Chybí oprávnění. Klepnutím opravíte v nastavení.';
+
+  @override
+  String get permissionBannerFix => 'Opravit';
+
+  @override
+  String get settingsRomGuideTitle => 'Speciální nastavení výrobce';
+
+  @override
+  String get settingsRomGuideSubtitle =>
+      'Xiaomi, Huawei, Samsung, Oppo a další';
+
+  @override
+  String get settingsRomGuideBody =>
+      'Některé telefony mají extra ochranu baterie, která může blokovat připomínky na pozadí. Níže jsou kroky pro nejrozšířenější výrobce:\n\n📱 Xiaomi / HyperOS\nNastavení → Aplikace → Správa aplikací → [Tato aplikace] → Baterie → Bez omezení\nNavíc: Nastavení → Aplikace → [Tato aplikace] → Automatické spouštění → Zapnout\n\n📱 Huawei / Honor\nNastavení → Aplikace → [Tato aplikace] → Baterie → Spouštění aplikace → Spravovat ručně → Povolte vše\n\n📱 Samsung (One UI)\nNastavení → Péče o zařízení → Baterie → Limity využití na pozadí → odeberte aplikaci ze seznamu\n\n📱 Oppo / Realme (ColorOS)\nNastavení → Baterie → Optimalizace baterie → [Tato aplikace] → Neoptimalizovat\n\n📱 Vivo (FuntouchOS)\nNastavení → Baterie → Vysoká spotřeba na pozadí → přidejte tuto aplikaci';
+
+  @override
+  String get settingsRomGuideClose => 'Zavřít';
+
+  @override
+  String get importSelectRemindersHint =>
+      'Vyberte připomínky, které chcete přidat do svého seznamu:';
+
+  @override
+  String importAction(int count) {
+    return 'Importovat ($count)';
+  }
+
+  @override
+  String importSuccess(int count) {
+    return 'Úspěšně importováno $count připomínek';
+  }
+
+  @override
+  String get importSelectTitle => 'Vybrat připomínky k importu';
+
+  @override
+  String get categoryCustom => 'Vlastní';
+
+  @override
+  String get categoryDocumentsDesc => 'Průkazy, pasy, povolení';
+
+  @override
+  String get categoryCarDesc => 'STK, pojištění, servis';
+
+  @override
+  String get categoryHealthDesc => 'Lékaři, prohlídky, očkování';
+
+  @override
+  String get categoryFinanceDesc => 'Daně, pojistky, splátky';
+
+  @override
+  String get categorySubscriptionsDesc => 'Netflix, Spotify, tarify';
+
+  @override
+  String get categoryHomeDesc => 'Revize, filtry, údržba';
+
+  @override
+  String get categoryDigitalDesc => 'Domény, certifikáty, licence';
+
+  @override
+  String get categoryPetsDesc => 'Veterina, očkování, krmení';
+
+  @override
+  String get categoryMaintenanceDesc => 'Kartáčky, filtry, čištění';
+
+  @override
+  String get categoryCustomDesc => 'Vlastní připomínky';
+
+  @override
+  String recurrenceCustomYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Každých $count let',
+      few: 'Každé $count roky',
+      one: 'Každý rok',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recurrenceCustomWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Každých $count týdnů',
+      few: 'Každé $count týdny',
+      one: 'Každý týden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recurrenceCustomMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Každých $count měsíců',
+      few: 'Každé $count měsíce',
+      one: 'Každý měsíc',
+    );
+    return '$_temp0';
+  }
 }

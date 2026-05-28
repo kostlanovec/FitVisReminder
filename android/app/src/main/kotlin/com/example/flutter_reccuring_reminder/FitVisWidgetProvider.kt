@@ -17,9 +17,9 @@ class FitVisWidgetProvider : AppWidgetProvider() {
             val widgetData = HomeWidgetPlugin.getData(context)
             val views = RemoteViews(context.packageName, R.layout.fit_vis_widget).apply {
                 
-                val title = widgetData.getString("next_title", "")
-                val date = widgetData.getString("next_date", "")
-                val category = widgetData.getString("next_category", "")
+                val title = widgetData.getString("next_title", "") ?: ""
+                val date = widgetData.getString("next_date", "") ?: ""
+                val category = widgetData.getString("next_category", "") ?: ""
                 val overdue = widgetData.getInt("overdue_count", 0)
 
                 setTextViewText(R.id.next_title, if (title.isEmpty()) "Žádné úkoly" else title)

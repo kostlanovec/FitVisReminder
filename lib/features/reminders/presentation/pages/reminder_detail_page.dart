@@ -88,7 +88,7 @@ class _DetailContent extends ConsumerWidget {
                 onPressed: () => context.push(AppRoutes.reminderEditPath(reminder.id)),
               ),
               PopupMenuButton<String>(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
                 itemBuilder: (_) => [
                   PopupMenuItem(
                     value: 'delete',
@@ -169,7 +169,7 @@ class _DetailContent extends ConsumerWidget {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xl)),
         title: Text(l.reminderDetailDeleteConfirm),
         content: Text('"${reminder.title}"'),
         actions: [
@@ -224,7 +224,7 @@ class _HeroHeader extends StatelessWidget {
                     height: 60,
                     decoration: BoxDecoration(
                       color: cat.color.withOpacity(isDark ? 0.2 : 0.12),
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(AppRadius.xl),
                     ),
                     child: Center(
                       child: Text(cat.emoji, style: const TextStyle(fontSize: 28)),
@@ -241,7 +241,7 @@ class _HeroHeader extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          cat.label,
+                          cat.localizedLabel(AppLocalizations.of(context)!),
                           style: TextStyle(fontSize: 13, color: cat.color, fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -299,7 +299,7 @@ class _UrgencyBadge extends StatelessWidget {
         if (reminder.recurrenceRule.isRecurring)
           _Chip(
             icon: Icons.repeat_rounded,
-            label: reminder.recurrenceRule.humanLabel,
+            label: reminder.recurrenceRule.humanLabelLocalized(AppLocalizations.of(context)!),
             color: AppColors.textSecondary,
           ),
       ],
@@ -320,7 +320,7 @@ class _Chip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -358,7 +358,7 @@ class _QuickActions extends ConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.accentGreen,
               minimumSize: const Size(0, 48),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
             ),
           ),
         ),
@@ -375,7 +375,7 @@ class _QuickActions extends ConsumerWidget {
                   SnackBar(
                     content: Text(l.reminderDetailSnoozed(formatted)),
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                   ),
                 );
                 context.pop();
@@ -385,7 +385,7 @@ class _QuickActions extends ConsumerWidget {
             label: Text(l.reminderDetailSnooze),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(0, 48),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
             ),
           ),
         ),
@@ -426,7 +426,7 @@ class _LastCompletedCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
       ),
       child: Row(
@@ -438,7 +438,7 @@ class _LastCompletedCard extends StatelessWidget {
               color: completed != null
                   ? AppColors.accentGreen.withOpacity(0.12)
                   : AppColors.textTertiary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(
               completed != null ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
@@ -483,10 +483,11 @@ class _ScheduleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
       ),
       child: Column(
@@ -514,7 +515,7 @@ class _ScheduleCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        trigger.label,
+                        trigger.label ?? l.reminderTriggerCustomDays(trigger.offsetDays),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: isPast ? AppColors.textSecondary : null,
@@ -581,7 +582,7 @@ class _UpcomingDatesCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
       ),
       child: Column(
@@ -662,8 +663,8 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cat = reminder.category;
     final rows = <(IconData, String, String)>[
-      (Icons.label_outline_rounded, l.reminderFormFieldCategory, '${cat.emoji} ${cat.label}'),
-      (Icons.repeat_rounded, l.reminderFormFieldRecurrence, reminder.recurrenceRule.humanLabel),
+      (Icons.label_outline_rounded, l.reminderFormFieldCategory, '${cat.emoji} ${cat.localizedLabel(l)}'),
+      (Icons.repeat_rounded, l.reminderFormFieldRecurrence, reminder.recurrenceRule.humanLabelLocalized(l)),
       if (reminder.description != null && reminder.description!.isNotEmpty)
         (Icons.notes_rounded, l.reminderFormFieldDescription, reminder.description!),
       if (reminder.createdAt != null)
@@ -674,7 +675,7 @@ class _InfoCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.cardDark : AppColors.cardLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight),
       ),
       child: Column(

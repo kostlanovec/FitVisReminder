@@ -10,7 +10,19 @@ abstract interface class TemplateDatasource {
   ReminderTemplate? findById(String id);
 }
 
+/// Per-template localizable strings (title, description, optional Q & hint).
+class _TStr {
+  const _TStr(this.title, this.description, [this.question, this.hint]);
+  final String title;
+  final String description;
+  final String? question;
+  final String? hint;
+}
+
 class HardcodedTemplateDatasource implements TemplateDatasource {
+  HardcodedTemplateDatasource({this.locale = 'en'});
+
+  final String locale;
   static const _monthly = [
     NotificationTrigger.monthBefore(),
     NotificationTrigger.weekBefore(),
@@ -35,7 +47,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'doc_id_card',
       title: 'Občanský průkaz',
       category: ReminderCategory.documents,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every10years(),
       defaultTriggers: _monthly,
       description: 'Platnost občanského průkazu (10 let)',
       icon: '🪪',
@@ -49,7 +61,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'doc_passport',
       title: 'Cestovní pas',
       category: ReminderCategory.documents,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every10years(),
       defaultTriggers: _monthly,
       description: 'Platnost cestovního pasu (10 let)',
       icon: '🛂',
@@ -63,7 +75,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'doc_drivers_license',
       title: 'Řidičský průkaz',
       category: ReminderCategory.documents,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every10years(),
       defaultTriggers: _monthly,
       description: 'Platnost řidičského průkazu (skupiny B – 10 let)',
       icon: '🚗',
@@ -86,11 +98,13 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'doc_residence_permit',
       title: 'Povolení k pobytu',
       category: ReminderCategory.documents,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every10years(),
       defaultTriggers: _monthly,
       description: 'Povolení k pobytu / trvalý pobyt',
       icon: '📋',
+      recommendedIntervalDays: 3650,
       onboardingQuestion: 'Kdy vyprší platnost vašeho povolení k pobytu?',
+      priority: ReminderPriority.high,
     ),
     const ReminderTemplate(
       id: 'doc_isic',
@@ -106,12 +120,13 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'doc_firearms',
       title: 'Zbrojní průkaz',
       category: ReminderCategory.documents,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every10years(),
       defaultTriggers: _monthly,
-      description: 'Platnost zbrojního průkazu (5 let)',
+      description: 'Platnost zbrojního průkazu (10 let)',
       icon: '🔫',
-      recommendedIntervalDays: 1825,
+      recommendedIntervalDays: 3650,
       onboardingQuestion: 'Kdy vyprší platnost vašeho zbrojního průkazu?',
+      priority: ReminderPriority.high,
     ),
 
     // ── AUTO ───────────────────────────────────────────────────────────────
@@ -119,27 +134,45 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'car_stk',
       title: 'STK',
       category: ReminderCategory.car,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every2years(),
       defaultTriggers: _monthly,
-      description: 'Technická kontrola vozidla (každé 2 roky pro nová, každý rok pro starší)',
+      description: 'Technická kontrola vozidla (každé 2 roky, starší 10 let každý rok)',
       icon: '🛠️',
-      recommendedIntervalDays: 365,
+      recommendedIntervalDays: 730,
       onboardingQuestion: 'Kdy jste naposledy absolvoval(a) STK?',
       onboardingHint: 'Datum najdete v technickém průkazu vozidla',
       priority: ReminderPriority.high,
       isPopular: true,
+      supportsMultiple: true,
+    ),
+    const ReminderTemplate(
+      id: 'car_stk_new',
+      title: 'STK – nové auto (4 roky)',
+      category: ReminderCategory.car,
+      defaultRecurrence: RecurrenceRule.every4years(),
+      defaultTriggers: _monthly,
+      description: 'První STK nového vozidla (do 4 let od registrace, pak každé 2 roky)',
+      icon: '🚗',
+      recommendedIntervalDays: 1460,
+      onboardingQuestion: 'Kdy bylo vaše nové auto registrováno?',
+      onboardingHint: 'Datum registrace je v technickém průkazu vozidla',
+      priority: ReminderPriority.high,
+      isPopular: false,
+      supportsMultiple: true,
     ),
     const ReminderTemplate(
       id: 'car_emissions',
       title: 'Emise',
       category: ReminderCategory.car,
-      defaultRecurrence: RecurrenceRule.yearly(),
-      defaultTriggers: _weekly,
-      description: 'Měření emisí vozidla',
+      defaultRecurrence: RecurrenceRule.every2years(),
+      defaultTriggers: _monthly,
+      description: 'Měření emisí vozidla (probíhá společně se STK, každé 2 roky)',
       icon: '💨',
-      recommendedIntervalDays: 365,
+      recommendedIntervalDays: 730,
       onboardingQuestion: 'Kdy jste naposledy měřil(a) emise?',
+      priority: ReminderPriority.high,
       isPopular: true,
+      supportsMultiple: true,
     ),
     const ReminderTemplate(
       id: 'car_insurance',
@@ -147,11 +180,13 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       category: ReminderCategory.car,
       defaultRecurrence: RecurrenceRule.yearly(),
       defaultTriggers: _monthly,
-      description: 'Platnost povinného ručení vozidla',
+      description: 'Platnost povinného ručení vozidla (každý rok)',
       icon: '🛡️',
+      recommendedIntervalDays: 365,
       onboardingQuestion: 'Kdy vyprší vaše povinné ručení?',
       priority: ReminderPriority.high,
       isPopular: true,
+      supportsMultiple: true,
     ),
     const ReminderTemplate(
       id: 'car_tires_summer',
@@ -161,6 +196,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       defaultTriggers: _weekly,
       description: 'Přezutí na letní pneumatiky (cca duben)',
       icon: '☀️',
+      recommendedIntervalDays: 365,
       isPopular: true,
     ),
     const ReminderTemplate(
@@ -171,6 +207,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       defaultTriggers: _weekly,
       description: 'Přezutí na zimní pneumatiky (cca říjen)',
       icon: '❄️',
+      recommendedIntervalDays: 365,
       isPopular: true,
     ),
     const ReminderTemplate(
@@ -179,7 +216,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       category: ReminderCategory.car,
       defaultRecurrence: RecurrenceRule.yearly(),
       defaultTriggers: _monthly,
-      description: 'Pravidelný servis vozidla',
+      description: 'Pravidelný servis vozidla (každý rok)',
       icon: '🔧',
       recommendedIntervalDays: 365,
       onboardingQuestion: 'Kdy byl naposledy váš vůz v servisu?',
@@ -199,9 +236,9 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'car_brakes',
       title: 'Kontrola brzd',
       category: ReminderCategory.car,
-      defaultRecurrence: RecurrenceRule.yearly(),
-      defaultTriggers: _weekly,
-      description: 'Kontrola a výměna brzdových destiček',
+      defaultRecurrence: RecurrenceRule.every2years(),
+      defaultTriggers: _monthly,
+      description: 'Kontrola a výměna brzdových destiček (každé 2 roky)',
       icon: '🛑',
       recommendedIntervalDays: 730,
     ),
@@ -221,8 +258,9 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       category: ReminderCategory.car,
       defaultRecurrence: RecurrenceRule.yearly(),
       defaultTriggers: _monthly,
-      description: 'Obnova dálniční e-známky',
+      description: 'Obnova dálniční e-známky (každý rok, platí do konce roku)',
       icon: '🛣️',
+      recommendedIntervalDays: 365,
       isPopular: true,
     ),
 
@@ -231,7 +269,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'health_gp',
       title: 'Praktický lékař',
       category: ReminderCategory.health,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every2years(),
       defaultTriggers: _monthly,
       description: 'Preventivní prohlídka u praktického lékaře (každé 2 roky)',
       icon: '🩺',
@@ -298,11 +336,24 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'health_eye_doctor',
       title: 'Oční lékař',
       category: ReminderCategory.health,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every2years(),
       defaultTriggers: _monthly,
-      description: 'Preventivní oční prohlídka',
+      description: 'Preventivní oční prohlídka (každé 2 roky)',
       icon: '👁️',
       recommendedIntervalDays: 730,
+    ),
+    const ReminderTemplate(
+      id: 'health_insurance_card',
+      title: 'Kartička pojištěnce',
+      category: ReminderCategory.health,
+      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultTriggers: _monthly,
+      description: 'Platnost kartičky zdravotního pojištění',
+      icon: '🏥',
+      recommendedIntervalDays: 365,
+      onboardingQuestion: 'Kdy vyprší vaše kartička pojištěnce?',
+      isPopular: true,
+      supportsMultiple: true,
     ),
 
     // ── FINANCE ────────────────────────────────────────────────────────────
@@ -314,6 +365,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       defaultTriggers: _monthly,
       description: 'Podání daňového přiznání (do 31. března)',
       icon: '📊',
+      priority: ReminderPriority.high,
       isPopular: true,
     ),
     const ReminderTemplate(
@@ -409,6 +461,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       description: 'Platnost platební / kreditní karty',
       icon: '💳',
       onboardingQuestion: 'Kdy expiruje vaše karta?',
+      supportsMultiple: true,
     ),
     const ReminderTemplate(
       id: 'fin_insurance_liability',
@@ -424,7 +477,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       id: 'fin_insurance_home',
       title: 'Pojištění domácnosti / nemovitosti',
       category: ReminderCategory.finance,
-      defaultRecurrence: RecurrenceRule.yearly(),
+      defaultRecurrence: RecurrenceRule.every3years(),
       defaultTriggers: _monthly,
       description: 'Platba pojistného a revize pojistných částek (doporučeno každé 3 roky)',
       icon: '🏠',
@@ -531,6 +584,7 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
       description: 'Pravidelné očkování zvířete (vzteklina, kombinované)',
       icon: '💉',
       isPopular: true,
+      supportsMultiple: true,
     ),
 
     // ── PRAVIDELNÁ ÚDRŽBA ──────────────────────────────────────────────────
@@ -578,18 +632,285 @@ class HardcodedTemplateDatasource implements TemplateDatasource {
     ),
   ];
 
+  // ── English translations ──────────────────────────────────────────────────
+  static const Map<String, _TStr> _en = {
+    // Documents
+    'doc_id_card': _TStr('National ID Card', 'National ID card validity (10 years)',
+        'When does your ID card expire?', 'Expiry date is on the front of the card'),
+    'doc_passport': _TStr('Passport', 'Passport validity (10 years)',
+        'When does your passport expire?', 'Expiry date is on the photo page'),
+    'doc_drivers_license': _TStr("Driver's License",
+        "Driver's license validity (category B – 10 years)",
+        "When does your driver's license expire?"),
+    'doc_visa': _TStr('Visa', 'Visa validity', 'When does your visa expire?'),
+    'doc_residence_permit': _TStr('Residence Permit',
+        'Residence permit / permanent residency',
+        'When does your residence permit expire?'),
+    'doc_isic': _TStr('ISIC Card', 'Student ISIC card validity',
+        'When does your ISIC card expire?'),
+    'doc_firearms': _TStr('Firearms License', 'Firearms license validity (10 years)',
+        'When does your firearms license expire?'),
+    // Car
+    'car_stk': _TStr('MOT / Vehicle Inspection',
+        'Vehicle technical inspection (every 2 years; annually for cars over 10 years old)',
+        'When was your last vehicle inspection?',
+        'Check the date in your vehicle registration document'),
+    'car_stk_new': _TStr('MOT – New Car (4 years)',
+        'First MOT for a new vehicle (within 4 years of registration, then every 2 years)',
+        'When was your new car registered?',
+        'Registration date is in your vehicle registration document'),
+    'car_emissions': _TStr('Emissions Test',
+        'Vehicle emissions test (done together with MOT, every 2 years)',
+        'When was your last emissions test?'),
+    'car_insurance': _TStr('Car Insurance',
+        'Mandatory third-party car insurance (annually)',
+        'When does your car insurance expire?'),
+    'car_tires_summer': _TStr(
+        'Switch to Summer Tyres', 'Switch to summer tyres (approx. April)'),
+    'car_tires_winter': _TStr(
+        'Switch to Winter Tyres', 'Switch to winter tyres (approx. October)'),
+    'car_service': _TStr('Car Service', 'Regular vehicle service (annually)',
+        'When was your car last serviced?'),
+    'car_oil_change': _TStr('Oil Change',
+        'Engine oil change (annually or by mileage)',
+        'When did you last change the oil?'),
+    'car_brakes': _TStr('Brake Inspection',
+        'Brake pad inspection and replacement (every 2 years)'),
+    'car_leasing': _TStr(
+        'Car Lease Payment', 'Monthly lease payment', 'When is your lease payment due?'),
+    'car_highway_vignette': _TStr('Highway Vignette',
+        'Highway e-vignette renewal (annually, valid until end of year)'),
+    // Health
+    'health_gp': _TStr('GP Check-up',
+        'Preventive check-up with GP (every 2 years)',
+        'When did you last visit your GP?'),
+    'health_dentist': _TStr('Dentist',
+        'Regular dental check-up (every 6 months)',
+        'When did you last visit the dentist?'),
+    'health_dental_hygiene': _TStr('Dental Hygiene',
+        'Dental hygiene appointment (every 6 months)',
+        'When did you last have a dental hygiene appointment?'),
+    'health_gynecologist': _TStr('Gynecologist',
+        'Preventive gynecology check-up (annually)',
+        'When did you last visit the gynecologist?'),
+    'health_vaccination': _TStr(
+        'Vaccination', 'Regular vaccination (flu, tetanus...)'),
+    'health_blood_tests': _TStr('Blood Tests', 'Regular blood tests and analysis'),
+    'health_eye_doctor': _TStr('Eye Exam',
+        'Preventive eye examination (every 2 years)'),
+    'health_insurance_card': _TStr('Health Insurance Card',
+        'Health insurance card validity',
+        'When does your health insurance card expire?'),
+    // Finance
+    'fin_taxes': _TStr('Tax Return', 'Tax return filing (by 31 March)'),
+    'fin_invoices': _TStr('Invoice Payment', 'Invoice due date'),
+    'fin_subscription_netflix': _TStr(
+        'Netflix', 'Monthly Netflix subscription', 'When is your Netflix payment due?'),
+    'fin_subscription_spotify': _TStr(
+        'Spotify', 'Monthly Spotify subscription', 'When is your Spotify payment due?'),
+    'fin_subscription_youtube': _TStr(
+        'YouTube Premium', 'Monthly YouTube Premium subscription'),
+    'fin_subscription_hbo': _TStr(
+        'HBO Max / Max', 'Monthly or annual HBO Max subscription'),
+    'fin_subscription_gym': _TStr(
+        'Gym Membership', 'Monthly gym / fitness membership'),
+    'fin_subscription_mobile': _TStr(
+        'Mobile Plan', 'Monthly mobile service bill'),
+    'fin_subscription_internet': _TStr(
+        'Internet', 'Monthly internet service payment'),
+    'fin_subscriptions_generic': _TStr(
+        'Other Subscriptions', 'Any monthly or annual subscription renewal'),
+    'fin_credit_card_expiry': _TStr('Credit Card Expiry',
+        'Payment / credit card validity', 'When does your card expire?'),
+    'fin_insurance_liability': _TStr('Liability Insurance',
+        'Personal liability insurance – everyday or professional use',
+        'When do you pay liability insurance?'),
+    'fin_insurance_home': _TStr('Home Insurance',
+        'Insurance premium payment and coverage review (recommended every 3 years)',
+        'When did you last review your home insurance policy?',
+        'Reviewing coverage protects against underinsurance as costs rise.'),
+    'fin_insurance_custom': _TStr('Custom Insurance',
+        'Any other insurance (e.g. travel, accident, life)',
+        'When do you pay this insurance?'),
+    // Home
+    'home_boiler_service': _TStr('Boiler Service',
+        'Mandatory annual gas boiler inspection',
+        'When was your boiler last serviced?'),
+    'home_filters': _TStr(
+        'Filter Replacement', 'Filter replacement (water, air, cooker hood)'),
+    // Digital
+    'digital_domain': _TStr('Domain', 'Domain registration renewal'),
+    'digital_ssl': _TStr('SSL Certificate', 'SSL/TLS certificate renewal',
+        'When does your SSL certificate expire?'),
+    'digital_backup': _TStr('Data Backup', 'Regular important data backup'),
+    'digital_vps': _TStr('VPS Server', 'VPS / cloud server payment'),
+    'digital_password_audit': _TStr(
+        'Password Audit', 'Regular password review and update'),
+    // Pets
+    'pet_vaccination': _TStr(
+        'Pet Vaccination', 'Regular pet vaccination (rabies, combined vaccines)'),
+    // Maintenance
+    'maint_toothbrush': _TStr(
+        'Toothbrush Replacement', 'Replace toothbrush every 3 months'),
+    'maint_washing_machine': _TStr(
+        'Washing Machine Clean', 'Regular washing machine cleaning and disinfection'),
+    'maint_plant_watering': _TStr(
+        'Water Plants', 'Regular houseplant watering'),
+    'maint_bed_sheets': _TStr(
+        'Change Bed Sheets', 'Regular bed sheet change (ideally once a week)'),
+  };
+
+  // ── Czech translations (fallback / default) ───────────────────────────────
+  static const Map<String, _TStr> _cs = {
+    'doc_id_card': _TStr('Občanský průkaz', 'Platnost občanského průkazu (10 let)',
+        'Kdy vyprší platnost vašeho občanského průkazu?',
+        'Platnost OP najdete na přední straně průkazu'),
+    'doc_passport': _TStr('Cestovní pas', 'Platnost cestovního pasu (10 let)',
+        'Kdy vyprší platnost vašeho cestovního pasu?',
+        'Platnost pasu najdete na stránce s fotografií'),
+    'doc_drivers_license': _TStr('Řidičský průkaz',
+        'Platnost řidičského průkazu (skupiny B – 10 let)',
+        'Kdy vyprší platnost vašeho řidičského průkazu?'),
+    'doc_visa': _TStr('Vízum', 'Platnost víza', 'Kdy vyprší platnost vašeho víza?'),
+    'doc_residence_permit': _TStr('Povolení k pobytu',
+        'Povolení k pobytu / trvalý pobyt',
+        'Kdy vyprší platnost vašeho povolení k pobytu?'),
+    'doc_isic': _TStr('ISIC karta', 'Platnost studentské ISIC karty',
+        'Kdy vyprší platnost vaší ISIC karty?'),
+    'doc_firearms': _TStr('Zbrojní průkaz', 'Platnost zbrojního průkazu (10 let)',
+        'Kdy vyprší platnost vašeho zbrojního průkazu?'),
+    'car_stk': _TStr('STK',
+        'Technická kontrola vozidla (každé 2 roky, starší 10 let každý rok)',
+        'Kdy jste naposledy absolvoval(a) STK?',
+        'Datum najdete v technickém průkazu vozidla'),
+    'car_stk_new': _TStr('STK – nové auto (4 roky)',
+        'První STK nového vozidla (do 4 let od registrace, pak každé 2 roky)',
+        'Kdy bylo vaše nové auto registrováno?',
+        'Datum registrace je v technickém průkazu vozidla'),
+    'car_emissions': _TStr('Emise',
+        'Měření emisí vozidla (probíhá společně se STK, každé 2 roky)',
+        'Kdy jste naposledy měřil(a) emise?'),
+    'car_insurance': _TStr('Povinné ručení',
+        'Platnost povinného ručení vozidla (každý rok)',
+        'Kdy vyprší vaše povinné ručení?'),
+    'car_tires_summer': _TStr('Přezutí na letní pneumatiky',
+        'Přezutí na letní pneumatiky (cca duben)'),
+    'car_tires_winter': _TStr('Přezutí na zimní pneumatiky',
+        'Přezutí na zimní pneumatiky (cca říjen)'),
+    'car_service': _TStr('Servis auta', 'Pravidelný servis vozidla (každý rok)',
+        'Kdy byl naposledy váš vůz v servisu?'),
+    'car_oil_change': _TStr('Výměna oleje',
+        'Výměna motorového oleje (každý rok nebo dle km)',
+        'Kdy jste naposledy měnil(a) olej?'),
+    'car_brakes': _TStr('Kontrola brzd',
+        'Kontrola a výměna brzdových destiček (každé 2 roky)'),
+    'car_leasing': _TStr('Leasing', 'Měsíční splátka leasingu',
+        'Kdy je splatný váš leasing?'),
+    'car_highway_vignette': _TStr('Dálniční známka',
+        'Obnova dálniční e-známky (každý rok, platí do konce roku)'),
+    'health_gp': _TStr('Praktický lékař',
+        'Preventivní prohlídka u praktického lékaře (každé 2 roky)',
+        'Kdy jste naposledy byl(a) u praktického lékaře?'),
+    'health_dentist': _TStr('Zubař',
+        'Pravidelná prohlídka u zubaře (každých 6 měsíců)',
+        'Kdy jste naposledy byl(a) u zubaře?'),
+    'health_dental_hygiene': _TStr('Dentální hygiena',
+        'Dentální hygiena (každých 6 měsíců)',
+        'Kdy jste naposledy byl(a) na dentální hygieně?'),
+    'health_gynecologist': _TStr('Gynekolog',
+        'Preventivní gynekologická prohlídka (každý rok)',
+        'Kdy jste naposledy byl(a) u gynekologa?'),
+    'health_vaccination': _TStr(
+        'Očkování', 'Pravidelná vakcinace (chřipka, tetanus...)'),
+    'health_blood_tests': _TStr('Krevní testy', 'Pravidelné krevní odběry a rozbory'),
+    'health_eye_doctor': _TStr('Oční lékař',
+        'Preventivní oční prohlídka (každé 2 roky)'),
+    'health_insurance_card': _TStr('Kartička pojištěnce',
+        'Platnost kartičky zdravotního pojištění',
+        'Kdy vyprší vaše kartička pojištěnce?'),
+    'fin_taxes': _TStr('Daňové přiznání', 'Podání daňového přiznání (do 31. března)'),
+    'fin_invoices': _TStr('Faktury k zaplacení', 'Splatnost faktury'),
+    'fin_subscription_netflix': _TStr('Netflix', 'Měsíční platba za Netflix',
+        'Kdy se vám strhává platba za Netflix?'),
+    'fin_subscription_spotify': _TStr('Spotify', 'Měsíční platba za Spotify',
+        'Kdy se vám strhává platba za Spotify?'),
+    'fin_subscription_youtube': _TStr(
+        'YouTube Premium', 'Měsíční platba za YouTube Premium'),
+    'fin_subscription_hbo': _TStr(
+        'HBO Max / Max', 'Měsíční nebo roční platba za HBO Max'),
+    'fin_subscription_gym': _TStr(
+        'Permanentka do fitness', 'Měsíční členství v gymu / fitness'),
+    'fin_subscription_mobile': _TStr(
+        'Mobilní tarif', 'Měsíční vyúčtování za mobilní služby'),
+    'fin_subscription_internet': _TStr(
+        'Internet', 'Měsíční platba za internetové připojení'),
+    'fin_subscriptions_generic': _TStr('Ostatní předplatné',
+        'Obnovení libovolného měsíčního nebo ročního předplatného'),
+    'fin_credit_card_expiry': _TStr('Expirace platební karty',
+        'Platnost platební / kreditní karty', 'Kdy expiruje vaše karta?'),
+    'fin_insurance_liability': _TStr('Pojištění odpovědnosti',
+        '„Pojistka na blbost" – v běžném životě nebo z výkonu povolání',
+        'Kdy platíte pojištění odpovědnosti?'),
+    'fin_insurance_home': _TStr('Pojištění domácnosti / nemovitosti',
+        'Platba pojistného a revize pojistných částek (doporučeno každé 3 roky)',
+        'Kdy jste naposledy revidovali pojistnou smlouvu na domov?',
+        'Revize částek chrání před podpojištěním při růstu cen.'),
+    'fin_insurance_custom': _TStr('Vlastní pojištění',
+        'Jakékoli další pojištění (např. cestovní, úrazové, životní)',
+        'Kdy platíte toto pojištění?'),
+    'home_boiler_service': _TStr('Revize kotle',
+        'Povinná roční revize plynového kotle',
+        'Kdy byla naposledy revize vašeho kotle?'),
+    'home_filters': _TStr('Výměna filtrů',
+        'Výměna filtrů (voda, vzduch, digestoř)'),
+    'digital_domain': _TStr('Doména', 'Obnova registrace domény'),
+    'digital_ssl': _TStr('SSL certifikát', 'Obnovení SSL/TLS certifikátu',
+        'Kdy expiruje váš SSL certifikát?'),
+    'digital_backup': _TStr('Záloha dat', 'Pravidelná záloha důležitých dat'),
+    'digital_vps': _TStr('VPS server', 'Platba za VPS / cloud server'),
+    'digital_password_audit': _TStr(
+        'Audit hesel', 'Pravidelná kontrola a obnova hesel'),
+    'pet_vaccination': _TStr('Očkování mazlíčka',
+        'Pravidelné očkování zvířete (vzteklina, kombinované)'),
+    'maint_toothbrush': _TStr('Výměna zubního kartáčku',
+        'Výměna zubního kartáčku (každé 3 měsíce)'),
+    'maint_washing_machine': _TStr('Čištění pračky',
+        'Pravidelné čištění a dezinfekce pračky'),
+    'maint_plant_watering': _TStr(
+        'Zalévání rostlin', 'Pravidelné zalévání pokojových rostlin'),
+    'maint_bed_sheets': _TStr('Výměna prostěradla',
+        'Pravidelná výměna prostěradla (ideálně 1x týdně)'),
+  };
+
+  Map<String, _TStr> get _strings => locale == 'cs' ? _cs : _en;
+
+  ReminderTemplate _localize(ReminderTemplate t) {
+    final s = _strings[t.id];
+    if (s == null) return t;
+    return t.copyWith(
+      title: s.title,
+      description: s.description,
+      onboardingQuestion: s.question,
+      onboardingHint: s.hint,
+    );
+  }
+
   @override
-  List<ReminderTemplate> getAll() => List.unmodifiable(_templates);
+  List<ReminderTemplate> getAll() =>
+      List.unmodifiable(_templates.map(_localize));
 
   @override
   List<ReminderTemplate> getByCategory(ReminderCategory category) {
-    return _templates.where((t) => t.category == category).toList();
+    return _templates
+        .where((t) => t.category == category)
+        .map(_localize)
+        .toList();
   }
 
   @override
   ReminderTemplate? findById(String id) {
     try {
-      return _templates.firstWhere((t) => t.id == id);
+      return _localize(_templates.firstWhere((t) => t.id == id));
     } catch (_) {
       return null;
     }

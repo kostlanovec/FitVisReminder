@@ -1,7 +1,7 @@
 abstract final class AppConstants {
   static const String appName = 'FitVis Reminder';
   static const String appVersion = '1.0.0';
-  static const String dbName = 'life_track.isar';
+  static const String dbName = 'life_track.db';
   static const String onboardingCompletedKey = 'onboarding_completed';
   static const String themeModeKey = 'theme_mode';
   static const String localeKey = 'locale';

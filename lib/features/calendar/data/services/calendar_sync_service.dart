@@ -1,5 +1,6 @@
-import 'package:device_calendar/device_calendar.dart';
+import 'package:device_calendar/device_calendar.dart' hide Reminder;
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
+import 'package:flutter/material.dart' show Color;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -43,6 +44,17 @@ class CalendarSyncService {
     await _plugin.deleteEvent(calendarId, eventId);
   }
 
+  /// Deletes a reminder's calendar event, looking up the calendar ID internally.
+  Future<void> deleteReminderEvent(String eventId) async {
+    try {
+      final calendarId = await _getOrCreateCalendarId();
+      if (calendarId == null) return;
+      await _plugin.deleteEvent(calendarId, eventId);
+    } catch (_) {
+      // Silent — calendar sync failures should never crash the app
+    }
+  }
+
   Future<String?> _getOrCreateCalendarId() async {
     final calendarsResult = await _plugin.retrieveCalendars();
     if (calendarsResult.isSuccess && calendarsResult.data != null) {
@@ -54,7 +66,7 @@ class CalendarSyncService {
 
     final createResult = await _plugin.createCalendar(
       calendarName,
-      calendarColor: 0xFF6366F1, // AppColors.primary
+      calendarColor: const Color(0xFF6366F1),
       localAccountName: 'FitVis',
     );
 

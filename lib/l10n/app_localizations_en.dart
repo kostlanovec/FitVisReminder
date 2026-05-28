@@ -199,6 +199,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderFormFieldNotifications => 'Notifications';
 
   @override
+  String get reminderFormBasicInfo => 'Basic info';
+
+  @override
+  String get reminderFormRecurrenceSection => 'Recurrence';
+
+  @override
   String get reminderFormTemplateSection => 'Template (optional)';
 
   @override
@@ -211,7 +217,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurrenceOnce => 'One-off';
 
   @override
-  String get recurrenceDaily => 'Every day';
+  String get recurrenceDaily => 'Daily';
 
   @override
   String get recurrenceWeekly => 'Every week';
@@ -223,8 +229,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurrenceYearly => 'Every year';
 
   @override
-  String recurrenceCustomDays(int days) {
-    return 'Every $days days';
+  String recurrenceCustomDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count days',
+      one: 'Every day',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -291,6 +303,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRescheduleAll => 'Reschedule all';
 
   @override
+  String settingsRescheduleResult(int count) {
+    return 'Scheduled $count notifications';
+  }
+
+  @override
+  String get settingsNotificationTime => 'Notification time';
+
+  @override
+  String settingsNotificationTimeValue(int hour) {
+    return 'Notifications at $hour:00';
+  }
+
+  @override
   String get settingsCancelAll => 'Cancel all';
 
   @override
@@ -327,7 +352,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoryHome => 'Home';
 
   @override
-  String get categoryDigital => 'Digital';
+  String get categoryDigital => 'Digital life';
 
   @override
   String get categoryPets => 'Pets';
@@ -394,6 +419,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderCustomYears => 'Years';
 
   @override
+  String get reminderCustomWeeks => 'Weeks';
+
+  @override
+  String reminderTriggerCustomDays(int days) {
+    return '$days days before (Custom)';
+  }
+
+  @override
   String get reminderCustomLabel => 'Custom';
 
   @override
@@ -407,6 +440,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reminderDetailSnooze => 'Snooze 1 week';
+
+  @override
+  String get reminderSnoozeMonth => 'Snooze 1 month';
+
+  @override
+  String get reminderListContextSelect => 'Select';
 
   @override
   String reminderDetailSnoozed(String date) {
@@ -713,4 +752,205 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsCalendarSyncHint =>
       'Automatically add deadlines to system calendar';
+
+  @override
+  String get buttonShare => 'Share';
+
+  @override
+  String selectionShare(Object count) {
+    return 'Share ($count)';
+  }
+
+  @override
+  String get dashboardSectionUpcoming => 'Upcoming';
+
+  @override
+  String get dashboardNothingUpcoming => 'Nothing upcoming';
+
+  @override
+  String get reminderFormTriggersSection => 'Notifications';
+
+  @override
+  String get reminderFormTriggersRequired =>
+      'Please select at least one notification trigger';
+
+  @override
+  String get settingsBatteryOptimization => 'Background execution (battery)';
+
+  @override
+  String get settingsBatteryOptimizationDisabled =>
+      'Optimized (reminders might be delayed)';
+
+  @override
+  String get settingsBatteryOptimizationEnabled =>
+      'Unrestricted (reliable execution)';
+
+  @override
+  String get settingsBatteryAlreadyAllowed =>
+      'The app already has background execution allowed.';
+
+  @override
+  String get settingsPreciseAlarms => 'Precise Alarms';
+
+  @override
+  String get settingsPreciseAlarmsEnabled => 'Allowed (accurate reminders)';
+
+  @override
+  String get settingsPreciseAlarmsDisabled =>
+      'Restricted (reminders may be delayed)';
+
+  @override
+  String get settingsPreciseAlarmsDialogTitle => 'Precise Alarms Required';
+
+  @override
+  String get settingsPreciseAlarmsDialogBody =>
+      'This application needs permission to schedule precise alarms to deliver notifications at the exact scheduled time. Tap Save to open system settings.';
+
+  @override
+  String get dashboardSectionOverdue => 'Overdue';
+
+  @override
+  String get dashboardSectionThisWeek => 'This week';
+
+  @override
+  String get dashboardCalmTitle => 'All clear';
+
+  @override
+  String get dashboardCalmHint => 'Nothing due in the next month.';
+
+  @override
+  String get dashboardCalmNext => 'Next';
+
+  @override
+  String dashboardShowAll(int count) {
+    return 'Show all ($count)';
+  }
+
+  @override
+  String get settingsNotificationTimeAdd => 'Add time';
+
+  @override
+  String get settingsNotificationTimeAddHint => 'Select hour (0–23)';
+
+  @override
+  String get settingsNotificationTimesLabel => 'Notification times';
+
+  @override
+  String get settingsNotificationTimesHint =>
+      'Reminders will be sent at these times. Max 5.';
+
+  @override
+  String get settingsNotificationTimeAlreadyExists =>
+      'This time is already added.';
+
+  @override
+  String get settingsNotificationTimeAtLeastOne =>
+      'At least one time must remain.';
+
+  @override
+  String get permissionBannerTitle => 'Notifications may not be reliable';
+
+  @override
+  String get permissionBannerBody =>
+      'Missing permissions. Tap to fix in Settings.';
+
+  @override
+  String get permissionBannerFix => 'Fix';
+
+  @override
+  String get settingsRomGuideTitle => 'Manufacturer-specific setup';
+
+  @override
+  String get settingsRomGuideSubtitle =>
+      'Xiaomi, Huawei, Samsung, Oppo and others';
+
+  @override
+  String get settingsRomGuideBody =>
+      'Some phones have extra battery protection that can block background reminders. Below are steps for the most common manufacturers:\n\n📱 Xiaomi / HyperOS\nSettings → Apps → Manage Apps → [This App] → Battery → No restrictions\nAlso: Settings → Apps → [This App] → Autostart → On\n\n📱 Huawei / Honor\nSettings → Apps → [This App] → Battery → App launch → Manage manually → Allow all\n\n📱 Samsung (One UI)\nSettings → Device Care → Battery → Background usage limits → remove this app from the list\n\n📱 Oppo / Realme (ColorOS)\nSettings → Battery → Battery Optimization → [This App] → Don\'t optimize\n\n📱 Vivo (FuntouchOS)\nSettings → Battery → High background power consumption → add this app';
+
+  @override
+  String get settingsRomGuideClose => 'Close';
+
+  @override
+  String get importSelectRemindersHint =>
+      'Select the reminders you want to add to your list:';
+
+  @override
+  String importAction(int count) {
+    return 'Import ($count)';
+  }
+
+  @override
+  String importSuccess(int count) {
+    return 'Successfully imported $count reminders';
+  }
+
+  @override
+  String get importSelectTitle => 'Select reminders to import';
+
+  @override
+  String get categoryCustom => 'Custom';
+
+  @override
+  String get categoryDocumentsDesc => 'ID cards, passports, permits';
+
+  @override
+  String get categoryCarDesc => 'MOT, insurance, service';
+
+  @override
+  String get categoryHealthDesc => 'Doctors, check-ups, vaccines';
+
+  @override
+  String get categoryFinanceDesc => 'Taxes, insurance, payments';
+
+  @override
+  String get categorySubscriptionsDesc => 'Netflix, Spotify, subscriptions';
+
+  @override
+  String get categoryHomeDesc => 'Inspections, filters, maintenance';
+
+  @override
+  String get categoryDigitalDesc => 'Domains, certificates, licences';
+
+  @override
+  String get categoryPetsDesc => 'Vet, vaccines, feeding';
+
+  @override
+  String get categoryMaintenanceDesc => 'Brushes, filters, cleaning';
+
+  @override
+  String get categoryCustomDesc => 'Custom reminders';
+
+  @override
+  String recurrenceCustomYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count years',
+      one: 'Every year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recurrenceCustomWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count weeks',
+      one: 'Every week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recurrenceCustomMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count months',
+      one: 'Every month',
+    );
+    return '$_temp0';
+  }
 }

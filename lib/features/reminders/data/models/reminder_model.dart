@@ -1,15 +1,14 @@
 import 'dart:convert';
-import 'package:isar/isar.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_category.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/recurrence_rule.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/notification_trigger.dart';
 
-part 'reminder_model.g.dart';
-
-@collection
+/// Plain Dart transfer object used between the datasource and repository layers.
+/// [id] == 0 means "new record" — the datasource assigns the real auto-increment id.
 class ReminderData {
   ReminderData({
+    this.id = 0,
     required this.title,
     required this.categoryIndex,
     required this.dueDate,
@@ -25,20 +24,22 @@ class ReminderData {
     this.calendarEventId,
   });
 
-  Id id = Isar.autoIncrement;
-  late String title;
-  late int categoryIndex;
-  late DateTime dueDate;
-  late String recurrenceRuleJson;
-  late String triggersJson;
+  int id;
+  String title;
+  int categoryIndex;
+  DateTime dueDate;
+  String recurrenceRuleJson;
+  String triggersJson;
   String? description;
   String? templateId;
-  late bool isActive;
+  bool isActive;
   DateTime? lastCompletedAt;
   DateTime? createdAt;
   DateTime? updatedAt;
   int? customIconCode;
   String? calendarEventId;
+
+  // ── Domain mapping ────────────────────────────────────────────────────────
 
   Reminder toDomain() {
     return Reminder(
@@ -61,11 +62,13 @@ class ReminderData {
 
   static ReminderData fromDomain(Reminder reminder) {
     return ReminderData(
+      id: reminder.id, // 0 = auto-increment (new record)
       title: reminder.title,
       categoryIndex: reminder.category.index,
       dueDate: reminder.dueDate,
       recurrenceRuleJson: jsonEncode(reminder.recurrenceRule.toJson()),
-      triggersJson: jsonEncode(reminder.triggers.map((t) => t.toJson()).toList()),
+      triggersJson:
+          jsonEncode(reminder.triggers.map((t) => t.toJson()).toList()),
       description: reminder.description,
       templateId: reminder.templateId,
       isActive: reminder.isActive,
@@ -74,8 +77,10 @@ class ReminderData {
       updatedAt: reminder.updatedAt ?? DateTime.now(),
       customIconCode: reminder.customIconCode,
       calendarEventId: reminder.calendarEventId,
-    )..id = reminder.id == 0 ? Isar.autoIncrement : reminder.id;
+    );
   }
+
+  // ── Private helpers ───────────────────────────────────────────────────────
 
   RecurrenceRule _parseRecurrenceRule() {
     try {
@@ -89,7 +94,10 @@ class ReminderData {
   List<NotificationTrigger> _parseTriggers() {
     try {
       final list = jsonDecode(triggersJson) as List<dynamic>;
-      return list.cast<Map<String, dynamic>>().map(NotificationTrigger.fromJson).toList();
+      return list
+          .cast<Map<String, dynamic>>()
+          .map(NotificationTrigger.fromJson)
+          .toList();
     } catch (_) {
       return const [];
     }

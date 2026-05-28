@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:fit_vis_reminder/core/theme/app_theme.dart';
 import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder.dart';
+import 'package:fit_vis_reminder/features/reminders/domain/entities/reminder_priority.dart';
+import 'package:fit_vis_reminder/l10n/app_localizations.dart';
 
 class ReminderCard extends StatelessWidget {
   const ReminderCard({
@@ -23,6 +25,7 @@ class ReminderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context)!;
     final isDark = theme.brightness == Brightness.dark;
     final isOverdue = reminder.isOverdue;
     final isDueToday = reminder.isDueToday;
@@ -30,101 +33,85 @@ class ReminderCard extends StatelessWidget {
     final cat = reminder.category;
     final locale = Localizations.localeOf(context).toLanguageTag();
 
-    Color accentColor;
-    if (isOverdue) {
-      accentColor = AppColors.accentRed;
-    } else if (isDueToday || daysLeft <= 3) {
-      accentColor = AppColors.accentAmber;
-    } else if (daysLeft <= 14) {
-      accentColor = AppColors.accentGreen;
-    } else {
-      accentColor = cat.color;
-    }
+    // Card background: subtle tint only when overdue; otherwise plain white/dark
+    final Color cardBg = isOverdue
+        ? (isDark
+            ? AppColors.accentRed.withValues(alpha: 0.09)
+            : AppColors.accentRed.withValues(alpha: 0.04))
+        : (isDark ? AppColors.cardDark : Colors.white);
+
+    final Color borderColor = isOverdue
+        ? AppColors.accentRed.withValues(alpha: isDark ? 0.4 : 0.22)
+        : (isDark ? AppColors.borderDark : AppColors.borderLight);
 
     return Animate(
       delay: animationDelay,
       effects: const [
-        FadeEffect(duration: Duration(milliseconds: 280)),
+        FadeEffect(duration: Duration(milliseconds: 220)),
         SlideEffect(
           begin: Offset(0, 0.04),
           end: Offset.zero,
-          duration: Duration(milliseconds: 280),
+          duration: Duration(milliseconds: 220),
           curve: Curves.easeOut,
         ),
       ],
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppColors.cardDark : AppColors.cardLight,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isOverdue
-                ? AppColors.accentRed.withValues(alpha: 0.3)
-                : isDark
-                    ? AppColors.borderDark
-                    : AppColors.borderLight,
-            width: 1,
-          ),
+          color: cardBg,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: borderColor, width: isOverdue ? 1.5 : 1),
           boxShadow: cardShadow(isDark),
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             splashColor: cat.color.withValues(alpha: 0.06),
-            highlightColor: cat.color.withValues(alpha: 0.04),
-            child: Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: accentColor,
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(20),
+            highlightColor: cat.color.withValues(alpha: 0.03),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+              ),
+              child: Row(
+                children: [
+                  // Emoji — large, no container box
+                  SizedBox(
+                    width: 32,
+                    child: Text(
+                      cat.emoji,
+                      style: const TextStyle(fontSize: 24),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: cat.color.withValues(alpha: isDark ? 0.15 : 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        cat.emoji,
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  const SizedBox(width: AppSpacing.md),
+                  // Content
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           reminder.title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            letterSpacing: -0.2,
+                          style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                            letterSpacing: -0.2,
+                            color: isOverdue
+                                ? AppColors.accentRed
+                                : null,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (reminder.priority == ReminderPriority.high) ...[
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 2),
                           _PriorityBadge(isDark: isDark),
                         ],
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 5),
                         Row(
                           children: [
                             _DateChip(
@@ -138,8 +125,8 @@ class ReminderCard extends StatelessWidget {
                               const SizedBox(width: 8),
                               _PillBadge(
                                 icon: Icons.repeat_rounded,
-                                label: reminder.recurrenceRule.humanLabel,
-                                color: AppColors.textSecondary,
+                                label: reminder.recurrenceRule.humanLabelLocalized(l),
+                                color: AppColors.textTertiary,
                               ),
                             ],
                           ],
@@ -147,12 +134,11 @@ class ReminderCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: _DoneButton(onDone: onDone, color: accentColor),
-                ),
-              ],
+                  // Done button — minimal icon, no container
+                  if (onDone != null)
+                    _DoneButton(onDone: onDone, isOverdue: isOverdue),
+                ],
+              ),
             ),
           ),
         ),
@@ -160,6 +146,8 @@ class ReminderCard extends StatelessWidget {
     );
   }
 }
+
+// ── Date chip ─────────────────────────────────────────────────────────────
 
 class _DateChip extends StatelessWidget {
   const _DateChip({
@@ -178,10 +166,10 @@ class _DateChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final Color color;
     final String label;
 
-    final l = AppLocalizations.of(context)!;
     if (isOverdue) {
       color = AppColors.accentRed;
       label = l.reminderDetailOverdueCount(daysLeft.abs());
@@ -203,13 +191,15 @@ class _DateChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(AppRadius.chip),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isOverdue ? Icons.warning_amber_rounded : Icons.calendar_today_rounded,
+            isOverdue
+                ? Icons.warning_amber_rounded
+                : Icons.calendar_today_rounded,
             size: 11,
             color: color,
           ),
@@ -227,6 +217,8 @@ class _DateChip extends StatelessWidget {
     );
   }
 }
+
+// ── Pill badge (recurrence label) ────────────────────────────────────────
 
 class _PillBadge extends StatelessWidget {
   const _PillBadge({
@@ -259,10 +251,40 @@ class _PillBadge extends StatelessWidget {
   }
 }
 
+// ── Priority badge ────────────────────────────────────────────────────────
+
+class _PriorityBadge extends StatelessWidget {
+  const _PriorityBadge({required this.isDark});
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.bolt_rounded,
+            size: 11, color: AppColors.accentAmber),
+        const SizedBox(width: 3),
+        Text(
+          AppLocalizations.of(context)!.priorityHigh,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.accentAmber,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Done button ──────────────────────────────────────────────────────────
+
 class _DoneButton extends StatefulWidget {
-  const _DoneButton({this.onDone, required this.color});
+  const _DoneButton({this.onDone, required this.isOverdue});
   final VoidCallback? onDone;
-  final Color color;
+  final bool isOverdue;
 
   @override
   State<_DoneButton> createState() => _DoneButtonState();
@@ -273,6 +295,8 @@ class _DoneButtonState extends State<_DoneButton> {
 
   @override
   Widget build(BuildContext context) {
+    final color =
+        widget.isOverdue ? AppColors.accentRed : AppColors.textTertiary;
     return Semantics(
       button: true,
       label: AppLocalizations.of(context)!.reminderMarkDoneAction,
@@ -283,55 +307,17 @@ class _DoneButtonState extends State<_DoneButton> {
         onTap: widget.onDone,
         behavior: HitTestBehavior.opaque,
         child: AnimatedScale(
-          scale: _pressed ? 0.9 : 1.0,
-          duration: const Duration(milliseconds: 100),
-          child: Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: widget.color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: widget.color.withValues(alpha: 0.4), width: 1.5),
-            ),
+          scale: _pressed ? 0.82 : 1.0,
+          duration: const Duration(milliseconds: 90),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm + 2),
             child: Icon(
-              Icons.check_rounded,
-              size: 18,
-              color: widget.color,
+              Icons.check_circle_outline_rounded,
+              size: 22,
+              color: color,
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PriorityBadge extends StatelessWidget {
-  const _PriorityBadge({required this.isDark});
-  final bool isDark;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.accentRed.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.priority_high_rounded, size: 10, color: AppColors.accentRed),
-          const SizedBox(width: 2),
-          Text(
-            AppLocalizations.of(context)!.priorityHigh,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              color: AppColors.accentRed,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
       ),
     );
   }
